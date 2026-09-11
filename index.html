@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instant YouTube Transcript Website</title>
     <style>
-        /* Modern CSS Variables for easy light/dark mode switching */
         :root {
             --bg-color: #fafafa;
             --card-bg: #ffffff;
@@ -126,7 +125,7 @@
     <p style="margin-top: 0; color: grey;">Extract video text tracks cleanly using your free Supadata account.</p>
     
     <div class="search-container">
-        <input type="text" id="videoUrl" placeholder="Paste YouTube link here (e.g., https://youtube.com...)">
+        <input type="text" id="videoUrl" placeholder="Paste YouTube link here (e.g., https://www.youtube.com/watch?v=...)">
         <button class="fetch-btn" onclick="getTranscript()">Fetch Text</button>
     </div>
     
@@ -166,7 +165,7 @@
             });
         }
 
-        // Data Fetching Logic (Using basic string addition to prevent syntax errors)
+        // Data Fetching Logic
         async function getTranscript() {
             const urlInput = document.getElementById('videoUrl').value.trim();
             const outputDiv = document.getElementById('output');
@@ -178,8 +177,8 @@
             
             outputDiv.innerText = "Connecting to Supadata engines and processing captions...";
 
-            // Foolproof string concatenation method
-            const targetUrl = 'https://supadata.ai' + encodeURIComponent(urlInput) + '&text=true';
+            // CORRECTED SYSTEM ROUTING ADDRESS HERE
+            const targetUrl = 'https://api.supadata.ai/v1/transcript?url=' + encodeURIComponent(urlInput) + '&text=true';
 
             try {
                 const response = await fetch(targetUrl, {
@@ -199,7 +198,6 @@
                 if (data.content && typeof data.content === 'string') {
                     outputDiv.innerText = data.content;
                 } else if (Array.isArray(data.content)) {
-                    // If it returns an array of segments, merge them together
                     const paragraph = data.content.map(function(item) { return item.text; }).join(' ');
                     outputDiv.innerText = paragraph;
                 } else if (data.transcript) {
