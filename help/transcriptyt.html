@@ -5,26 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instant YouTube Transcript Website</title>
     <style>
+        /* Your Custom Branding Palette Integration */
         :root {
-            --bg-color: #fafafa;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --border-color: #e2e8f0;
-            --input-border: #ccc;
-            --primary-btn: #28a745;
-            --primary-btn-hover: #218838;
-            --secondary-btn: #6c757d;
-            --secondary-btn-hover: #5a6268;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #f0f0f0;
-            --border-color: #333333;
-            --input-border: #444444;
-            --primary-btn: #2ea44f;
-            --primary-btn-hover: #22863a;
+            --bg-main: #FF960C;         /* Bright background orange */
+            --text-title: #FF7100;      /* Darker heading orange */
+            --text-light: #F7F7F7;      /* Clean subtitle / text white */
+            --outline-dark: #2E1A00;    /* Deep contrast dark brown */
+            --card-bg: #3d2402;         /* Deep container dark background */
         }
 
         body { 
@@ -32,8 +19,8 @@
             max-width: 650px; 
             margin: 0 auto; 
             padding: 40px 20px; 
-            color: var(--text-color); 
-            background-color: var(--bg-color);
+            color: var(--text-light); 
+            background-color: var(--bg-main);
             transition: background-color 0.3s, color 0.3s;
         }
 
@@ -44,16 +31,12 @@
             margin-bottom: 10px;
         }
 
-        .theme-toggle-btn {
-            padding: 8px 12px;
-            font-size: 14px;
-            background-color: var(--secondary-btn);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
+        h2 {
+            color: var(--text-title);
+            font-size: 2.2rem;
+            margin: 0;
+            text-shadow: 2px 2px 0px var(--outline-dark);
         }
-        .theme-toggle-btn:hover { background-color: var(--secondary-btn-hover); }
 
         .search-container {
             display: flex;
@@ -65,24 +48,27 @@
             flex: 1;
             padding: 12px; 
             font-size: 16px; 
-            border: 1px solid var(--input-border); 
+            border: 2px solid var(--outline-dark); 
             border-radius: 6px; 
             box-sizing: border-box;
-            background-color: var(--card-bg);
-            color: var(--text-color);
+            background-color: var(--text-light);
+            color: #222;
         }
 
         .fetch-btn { 
             padding: 12px 20px; 
             font-size: 16px; 
-            background-color: var(--primary-btn); 
-            color: white; 
-            border: none; 
+            background-color: var(--text-title); 
+            color: var(--text-light); 
+            border: 2px solid var(--outline-dark); 
             border-radius: 6px; 
             cursor: pointer; 
             font-weight: bold; 
+            text-shadow: 1px 1px 0px var(--outline-dark);
+            box-shadow: 3px 3px 0px var(--outline-dark);
         }
-        .fetch-btn:hover { background-color: var(--primary-btn-hover); }
+        .fetch-btn:hover { background-color: #e66600; }
+        .fetch-btn:active { transform: translate(1px, 1px); box-shadow: 2px 2px 0px var(--outline-dark); }
 
         .action-row {
             display: flex;
@@ -95,45 +81,52 @@
         .copy-btn {
             padding: 8px 14px;
             font-size: 14px;
-            background-color: #007bff;
-            color: white;
-            border: none;
+            background-color: transparent;
+            color: var(--text-light);
+            border: 2px solid var(--outline-dark);
             border-radius: 6px;
             cursor: pointer;
+            font-weight: bold;
+            background: rgba(0,0,0,0.15);
+            box-shadow: 2px 2px 0px var(--outline-dark);
         }
-        .copy-btn:hover { background-color: #0056b3; }
+        .copy-btn:hover { background: rgba(0,0,0,0.25); }
 
         #output { 
             white-space: pre-wrap; 
             background: var(--card-bg); 
             padding: 20px; 
             border-radius: 8px; 
-            border: 1px solid var(--border-color); 
+            border: 3px solid var(--outline-dark); 
             min-height: 120px; 
             line-height: 1.6; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+            box-shadow: 5px 5px 0px var(--outline-dark); 
             font-size: 15px;
+            color: var(--text-light);
         }
 
         .nav-back {
             display: inline-block;
             margin-bottom: 15px;
             text-decoration: none;
-            color: var(--primary-btn);
+            color: var(--text-light);
             font-weight: bold;
+            border: 2px solid var(--outline-dark);
+            padding: 5px 12px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
 
-    <!-- Back navigation path for your folder structure mapping -->
+    <!-- Navigates accurately back up to your index index.html page -->
     <a href="../index.html" class="nav-back">← Back to Station Index</a>
 
     <div class="header-row">
         <h2>My YouTube Transcript Tool</h2>
-        <button class="theme-toggle-btn" onclick="toggleTheme()">🌓 Toggle Dark Mode</button>
     </div>
-    <p style="margin-top: 0; color: grey;">Extract video text tracks cleanly using your free Supadata account.</p>
+    <p style="margin-top: 0; color: var(--text-light); opacity: 0.9;">Extract video text tracks cleanly using your free Supadata account.</p>
     
     <div class="search-container">
         <input type="text" id="videoUrl" placeholder="Paste YouTube link here (e.g., https://youtube.com...)">
@@ -141,23 +134,15 @@
     </div>
     
     <div class="action-row">
-        <h3>Transcript Output:</h3>
+        <h3 style="margin: 0; color: var(--text-light);">Transcript Output:</h3>
         <button class="copy-btn" onclick="copyToClipboard()">📋 Copy Text</button>
     </div>
     
     <div id="output">Your transcript will appear here...</div>
 
     <script>
+        // Your integrated Supadata API Key
         const MY_SUPADATA_KEY = "sd_131232fbc0989acf458c7606ff1a9ee6";
-
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            if (currentTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'light');
-            } else {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            }
-        }
 
         function copyToClipboard() {
             const outputText = document.getElementById('output').innerText;
@@ -175,7 +160,7 @@
 
         function cleanSoundTags(text) {
             if (!text) return "";
-            // Matches text inside bracket configurations like [music] or (applause)
+            // Matches elements nested inside brackets like [music] or (laughter)
             let clean = text.replace(/\[.*?\]|\(.*?\)/gi, "");
             return clean.replace(/\s+/g, " ").trim();
         }
@@ -191,7 +176,7 @@
             
             outputDiv.innerText = "Connecting to Supadata engines and processing captions...";
 
-            // FIXED HOOK: Correct base API endpoint with parameter routing
+            // CRITICAL SYSTEM FIX: Correct API route parameters mapped cleanly
             const targetUrl = 'https://supadata.ai' + encodeURIComponent(urlInput) + '&text=true';
 
             try {
@@ -209,7 +194,7 @@
                 const data = await response.json();
                 let rawTranscript = "";
                 
-                // Parse returned contents whether structured as plain text payload or block text segments
+                // Parse out payloads safely based on structural response conditions
                 if (data.content && typeof data.content === 'string') {
                     rawTranscript = data.content;
                 } else if (Array.isArray(data.content)) {
@@ -221,7 +206,7 @@
                     return;
                 }
 
-                // Deliver filtered presentation stream
+                // Filter out the music and sound elements before writing to view matrix
                 outputDiv.innerText = cleanSoundTags(rawTranscript);
 
             } catch (error) {
