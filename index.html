@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instant YouTube Transcript Website</title>
     <style>
+        /* Modern CSS Variables for easy light/dark mode switching */
         :root {
             --bg-color: #fafafa;
             --card-bg: #ffffff;
@@ -134,12 +135,13 @@
         <button class="copy-btn" onclick="copyToClipboard()">📋 Copy Text</button>
     </div>
     
-    <!-- FIXED ID CONTAINER BELOW -->
     <div id="output">Your transcript will appear here...</div>
 
     <script>
+        // Your integrated Supadata API Key
         const MY_SUPADATA_KEY = "sd_131232fbc0989acf458c7606ff1a9ee6";
 
+        // Light/Dark Mode Logic
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             if (currentTheme === 'dark') {
@@ -149,6 +151,7 @@
             }
         }
 
+        // Copy Text Logic
         function copyToClipboard() {
             const outputText = document.getElementById('output').innerText;
             if (outputText === "Your transcript will appear here..." || outputText.trim() === "" || outputText.startsWith("Error:")) {
@@ -163,6 +166,7 @@
             });
         }
 
+        // Data Fetching Logic (Using basic string addition to prevent syntax errors)
         async function getTranscript() {
             const urlInput = document.getElementById('videoUrl').value.trim();
             const outputDiv = document.getElementById('output');
@@ -174,9 +178,11 @@
             
             outputDiv.innerText = "Connecting to Supadata engines and processing captions...";
 
+            // Foolproof string concatenation method
+            const targetUrl = 'https://supadata.ai' + encodeURIComponent(urlInput) + '&text=true';
+
             try {
-                // FIXED ENDPOINT ROUTING COMPATIBILITY
-                const response = await fetch(`https://supadata.ai{encodeURIComponent(urlInput)}&text=true`, {
+                const response = await fetch(targetUrl, {
                     method: 'GET',
                     headers: {
                         'x-api-key': MY_SUPADATA_KEY
@@ -189,8 +195,13 @@
 
                 const data = await response.json();
                 
-                if (data.content) {
+                // Handle if data comes back as a direct string or a segmented array
+                if (data.content && typeof data.content === 'string') {
                     outputDiv.innerText = data.content;
+                } else if (Array.isArray(data.content)) {
+                    // If it returns an array of segments, merge them together
+                    const paragraph = data.content.map(function(item) { return item.text; }).join(' ');
+                    outputDiv.innerText = paragraph;
                 } else if (data.transcript) {
                     outputDiv.innerText = data.transcript;
                 } else {
