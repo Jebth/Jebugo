@@ -3,187 +3,234 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Home base</title>
-<meta name="description" content="Guidelines, help, and inventory, organized in one place.">
-
+<title>Directory</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#FF960C;
-    --title:#FF7100;
-    --text:#F7F7F7;
-    --ink:#2E1A00;
-  }
-  *{ box-sizing:border-box; }
-  html,body{ margin:0; padding:0; }
-  body{
-    background:var(--bg);
-    color:var(--ink);
-    font-family:'Inter',sans-serif;
-    -webkit-font-smoothing:antialiased;
-    min-height:100vh;
-    overflow-x:hidden;
-    display:flex;
-    flex-direction:column;
+  :root {
+    --bg: #FF960C;
+    --title: #FF7100;
+    --text: #F7F7F7;
+    --line: #2E1A00;
   }
 
-  /* soft ambient glow behind the hero - the one bit of continuous motion */
-  .glow{
-    position:fixed;
-    top:-180px; left:-160px;
-    width:520px; height:520px;
-    background:radial-gradient(circle, rgba(247,247,247,.4), transparent 70%);
-    filter:blur(8px);
-    pointer-events:none;
-    z-index:0;
-    animation:drift 24s ease-in-out infinite alternate;
-  }
-  @keyframes drift{
-    from{ transform:translate(0,0); }
-    to{ transform:translate(36px,28px); }
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
   }
 
-  main{
-    position:relative;
-    z-index:1;
-    flex:1;
-    width:100%;
-    max-width:720px;
-    margin:0 auto;
-    padding:clamp(48px,9vw,96px) 28px 72px;
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 72px 24px 48px;
   }
 
-  /* the one bold moment on the page */
-  .hero{
-    background:linear-gradient(135deg, #2E1A00, #221300);
-    border-radius:20px;
-    padding:clamp(28px,5vw,44px) clamp(24px,5vw,40px);
-    opacity:0;
-    transform:translateY(14px) scale(.98);
-    animation:settle .7s cubic-bezier(.22,.61,.36,1) forwards;
-  }
-  @keyframes settle{
-    to{ opacity:1; transform:translateY(0) scale(1); }
-  }
-  .hero h1{
-    font-family:'Bricolage Grotesque',sans-serif;
-    font-weight:700;
-    font-size:clamp(2.3rem,7vw,3.5rem);
-    line-height:1.05;
-    letter-spacing:-0.01em;
-    color:var(--title);
-    margin:0 0 14px;
-  }
-  .hero p{
-    font-size:1.05rem;
-    line-height:1.55;
-    color:var(--text);
-    max-width:44ch;
-    margin:0;
+  header {
+    width: 100%;
+    max-width: 760px;
+    margin-bottom: 56px;
   }
 
-  .sections{
-    margin-top:clamp(48px,8vw,72px);
-    display:flex;
-    flex-direction:column;
-    gap:clamp(36px,6vw,52px);
-  }
-  .section h2{
-    display:inline-block;
-    font-family:'Bricolage Grotesque',sans-serif;
-    font-weight:600;
-    font-size:1.3rem;
-    color:var(--title);
-    background:var(--ink);
-    border-radius:8px;
-    padding:5px 14px;
-    margin:0 0 16px;
-  }
-  .links{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-  }
-  /* buttons read like stamped tickets: outlined, ink-on-orange, fill in on interaction */
-  .links a{
-    font-family:'Inter',sans-serif;
-    font-weight:500;
-    font-size:.95rem;
-    color:var(--ink);
-    text-decoration:none;
-    background:transparent;
-    border:2px solid var(--ink);
-    border-radius:8px;
-    padding:9px 18px;
-    transition:background .2s ease, color .2s ease;
-  }
-  .links a:hover,
-  .links a:focus-visible{
-    background:var(--ink);
-    color:var(--text);
-    outline:none;
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+    color: var(--title);
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
   }
 
-  footer{
-    position:relative;
-    z-index:1;
-    background:var(--ink);
-    color:var(--text);
-    text-align:center;
-    font-size:.8rem;
-    padding:18px 24px;
+  header p {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.95rem;
+    max-width: 46ch;
+    line-height: 1.6;
+    opacity: 0.92;
   }
 
-  @media (prefers-reduced-motion: reduce){
-    .glow{ animation:none; }
-    .hero{ animation:none; opacity:1; transform:none; }
-    .links a{ transition:none; }
+  main {
+    width: 100%;
+    max-width: 760px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .folder {
+    border: 1px solid var(--line);
+    border-radius: 2px;
+  }
+
+  .folder-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .folder-head h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--title);
+    margin: 0;
+  }
+
+  .folder-head span {
+    font-size: 0.78rem;
+    color: var(--text);
+    opacity: 0.65;
+  }
+
+  .tree {
+    padding: 8px 0;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 22px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.92rem;
+    border-left: 2px solid transparent;
+    transition: border-color 0.15s ease, background 0.15s ease, padding-left 0.15s ease;
+  }
+
+  .row:hover {
+    border-left: 2px solid var(--line);
+    background: rgba(46, 26, 0, 0.12);
+    padding-left: 26px;
+  }
+
+  .row .glyph {
+    color: var(--line);
+    opacity: 0.85;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .row.nested {
+    padding-left: 46px;
+  }
+
+  .row.nested:hover {
+    padding-left: 50px;
+  }
+
+  .row .name {
+    flex: 1;
+  }
+
+  .row .go {
+    opacity: 0;
+    color: var(--line);
+    transition: opacity 0.15s ease;
+  }
+
+  .row:hover .go {
+    opacity: 0.8;
+  }
+
+  footer {
+    width: 100%;
+    max-width: 760px;
+    margin-top: 56px;
+    font-size: 0.75rem;
+    color: var(--text);
+    opacity: 0.55;
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 48px 16px 40px; }
+    .row, .row.nested { padding-left: 22px; }
+    .folder-head { flex-direction: column; align-items: flex-start; gap: 4px; }
   }
 </style>
 </head>
 <body>
 
-<div class="glow" aria-hidden="true"></div>
+<header>
+  <h1>Directory</h1>
+  <p>Working index for this repo. Pick a folder to jump straight into it.</p>
+</header>
 
 <main>
-  <div class="hero">
-    <h1>Home base</h1>
-    <p>Guidelines, help, and inventory, organized so you can find things fast.</p>
-  </div>
 
-  <div class="sections">
-    <section class="section">
-      <h2>Guidelines</h2>
-      <div class="links">
-        <a href="guidelines/fonts/">Fonts</a>
-        <a href="guidelines/process/">Process</a>
-      </div>
-    </section>
+  <section class="folder">
+    <div class="folder-head">
+      <h2>guidelines</h2>
+      <span>/guidelines</span>
+    </div>
+    <nav class="tree">
+      <a class="row" href="guidelines/fonts/">
+        <span class="glyph">├─</span>
+        <span class="name">fonts</span>
+        <span class="go">→</span>
+      </a>
+      <a class="row" href="guidelines/process/">
+        <span class="glyph">├─</span>
+        <span class="name">process</span>
+        <span class="go">→</span>
+      </a>
+      <a class="row" href="guidelines/help/">
+        <span class="glyph">└─</span>
+        <span class="name">help</span>
+        <span class="go">→</span>
+      </a>
+      <a class="row nested" href="guidelines/help/ai/">
+        <span class="glyph">├─</span>
+        <span class="name">ai</span>
+        <span class="go">→</span>
+      </a>
+      <a class="row nested" href="guidelines/help/transcriptyt/">
+        <span class="glyph">└─</span>
+        <span class="name">transcriptyt</span>
+        <span class="go">→</span>
+      </a>
+    </nav>
+  </section>
 
-    <section class="section">
-      <h2>Help</h2>
-      <div class="links">
-        <a href="help/ai/">AI</a>
-        <a href="help/transcriptyt/">Transcript</a>
-      </div>
-    </section>
+  <section class="folder">
+    <div class="folder-head">
+      <h2>inventory</h2>
+      <span>/inventory</span>
+    </div>
+    <nav class="tree">
+      <a class="row" href="inventory/archived/">
+        <span class="glyph">├─</span>
+        <span class="name">archived</span>
+        <span class="go">→</span>
+      </a>
+      <a class="row" href="inventory/ideas/">
+        <span class="glyph">├─</span>
+        <span class="name">ideas</span>
+        <span class="go">→</span>
+      </a>
+      <a class="row" href="inventory/scripts/">
+        <span class="glyph">└─</span>
+        <span class="name">scripts</span>
+        <span class="go">→</span>
+      </a>
+    </nav>
+  </section>
 
-    <section class="section">
-      <h2>Inventory</h2>
-      <div class="links">
-        <a href="inventory/archived/">Archived</a>
-        <a href="inventory/ideas/">Ideas</a>
-        <a href="inventory/scripts/">Scripts</a>
-      </div>
-    </section>
-  </div>
 </main>
 
 <footer>
-  This page is just index.html. Edit the links anytime.
+  index.html · root of repo
 </footer>
 
 </body>
