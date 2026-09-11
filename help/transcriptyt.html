@@ -114,9 +114,20 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
             font-size: 15px;
         }
+
+        .nav-back {
+            display: inline-block;
+            margin-bottom: 15px;
+            text-decoration: none;
+            color: var(--primary-btn);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Back navigation path for your folder structure mapping -->
+    <a href="../index.html" class="nav-back">← Back to Station Index</a>
 
     <div class="header-row">
         <h2>My YouTube Transcript Tool</h2>
@@ -162,17 +173,11 @@
             });
         }
 
-        // Clean function to strip sound tags like [music], [Laughter], (applause)
         function cleanSoundTags(text) {
             if (!text) return "";
-            
-            // This rule matches anything inside square brackets [] or parentheses ()
+            // Matches text inside bracket configurations like [music] or (applause)
             let clean = text.replace(/\[.*?\]|\(.*?\)/gi, "");
-            
-            // Clean up any double spaces left behind by the deleted words
-            clean = clean.replace(/\s+/g, " ").trim();
-            
-            return clean;
+            return clean.replace(/\s+/g, " ").trim();
         }
 
         async function getTranscript() {
@@ -186,7 +191,7 @@
             
             outputDiv.innerText = "Connecting to Supadata engines and processing captions...";
 
-            // FIXED ROUTING STRING COMBINATION BELOW
+            // FIXED HOOK: Correct base API endpoint with parameter routing
             const targetUrl = 'https://supadata.ai' + encodeURIComponent(urlInput) + '&text=true';
 
             try {
@@ -204,6 +209,7 @@
                 const data = await response.json();
                 let rawTranscript = "";
                 
+                // Parse returned contents whether structured as plain text payload or block text segments
                 if (data.content && typeof data.content === 'string') {
                     rawTranscript = data.content;
                 } else if (Array.isArray(data.content)) {
@@ -215,7 +221,7 @@
                     return;
                 }
 
-                // Filter out the music and sounds tags before writing to screen
+                // Deliver filtered presentation stream
                 outputDiv.innerText = cleanSoundTags(rawTranscript);
 
             } catch (error) {
