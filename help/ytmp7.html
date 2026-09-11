@@ -1,1 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High-Quality Media Converter</title>
+    <style>
+        /* Custom Color Palette Integration */
+        :root {
+            --bg-main: #FF960C;         /* Bright background orange */
+            --text-title: #FF7100;      /* Darker heading orange */
+            --text-light: #F7F7F7;      /* Universal clean white text */
+            --outline-dark: #2E1A00;    /* Deep structural contrast brown */
+            --card-bg: #3d2402;         /* Matte internal box container */
+        }
 
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            max-width: 650px; 
+            margin: 0 auto; 
+            padding: 40px 20px; 
+            color: var(--text-light); 
+            background-color: var(--bg-main);
+        }
+
+        .back-link {
+            display: inline-block;
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 25px;
+            padding: 6px 12px;
+            border: 2px solid var(--outline-dark);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.15);
+            box-shadow: 2px 2px 0px var(--outline-dark);
+            transition: transform 0.1s;
+        }
+        .back-link:active { transform: scale(0.96); }
+
+        h2 { 
+            color: var(--text-title); 
+            font-size: 2.3rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 0px var(--outline-dark);
+        }
+
+        .desc-text {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-top: 0;
+            margin-bottom: 30px;
+        }
+
+        .tool-box {
+            background: var(--card-bg);
+            padding: 30px;
+            border: 3px solid var(--outline-dark);
+            border-radius: 8px;
+            box-shadow: 6px 6px 0px var(--outline-dark);
+        }
+
+        .input-group {
+            display: flex;
+            margin-bottom: 25px;
+        }
+
+        input { 
+            width: 100%;
+            padding: 14px; 
+            font-size: 16px; 
+            border: 2px solid var(--outline-dark); 
+            border-radius: 6px; 
+            background-color: var(--text-light);
+            color: #222;
+            box-sizing: border-box;
+        }
+        input::placeholder { color: #666; }
+
+        .btn-wrapper {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-btn { 
+            flex: 1;
+            padding: 14px; 
+            font-size: 16px; 
+            color: var(--text-light); 
+            border: 3px solid var(--outline-dark); 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            text-shadow: 1px 1px 0px var(--outline-dark);
+            box-shadow: 3px 3px 0px var(--outline-dark);
+            transition: all 0.1s;
+        }
+        .action-btn:active { 
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px var(--outline-dark);
+        }
+
+        .mp3 { background-color: #d9381e; }
+        .mp4 { background-color: #0066cc; }
+
+        /* Render Zone for the Vevioz Gateway Frame */
+        .output-zone {
+            margin-top: 30px;
+            display: none; 
+            border-top: 2px dashed rgba(247,247,247,0.2);
+            padding-top: 25px;
+        }
+
+        iframe {
+            width: 100%;
+            height: 120px;
+            border: 3px solid var(--outline-dark);
+            border-radius: 6px;
+            background: #ffffff;
+        }
+
+        .warning-tag {
+            font-size: 13px;
+            color: #e0d0cc;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Target link path set up to route directly back out to your home base layout -->
+    <a href="index.html" class="back-link">← Back to Station Index</a>
+
+    <h2>HQ Media Extractor</h2>
+    <p class="desc-text">Convert and download YouTube links directly to clean 320kbps MP3 or HD MP4 output tracks.</p>
+    
+    <div class="tool-box">
+        <div class="input-group">
+            <input type="text" id="targetUrl" placeholder="Paste standard YouTube watch link here...">
+        </div>
+        
+        <div class="btn-wrapper">
+            <button class="action-btn mp3" onclick="processConversion('mp3')">🎵 Extract MP3 Audio</button>
+            <button class="action-btn mp4" onclick="processConversion('mp4')">📺 Extract MP4 Video</button>
+        </div>
+
+        <div class="output-zone" id="renderArea">
+            <h4 style="margin-top: 0; margin-bottom: 12px; color: var(--text-title); text-shadow: 1px 1px 0px var(--outline-dark);">Processing Gate Stream:</h4>
+            <iframe id="veviozEngine" src="" scrolling="no"></iframe>
+            <div class="warning-tag">Note: Clicking buttons inside the dashboard frame initiates the download securely via Vevioz cloud processing pipelines.</div>
+        </div>
+    </div>
+
+    <script>
+        // Clean regex execution to pull out the 11 character identifier string
+        function getYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match.length === 11) ? match : null;
+        }
+
+        function processConversion(format) {
+            const rawUrl = document.getElementById('targetUrl').value.trim();
+            const videoId = getYouTubeId(rawUrl);
+            
+            if (!videoId) {
+                alert('Please provide a functional, complete YouTube link.');
+                return;
+            }
+
+            const frameBox = document.getElementById('renderArea');
+            const targetIframe = document.getElementById('veviozEngine');
+
+            // Apply direct server endpoints based on your requested layout format selection
+            if (format === 'mp3') {
+                targetIframe.src = 'https://api.vevioz.com/api/button/mp3/' + videoId;
+            } else if (format === 'mp4') {
+                targetIframe.src = 'https://api.vevioz.com/api/button/videos/' + videoId;
+            }
+
+            // Expose layout element visually inside view matrix
+            frameBox.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
