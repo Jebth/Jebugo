@@ -125,7 +125,7 @@
     <p style="margin-top: 0; color: grey;">Extract video text tracks cleanly using your free Supadata account.</p>
     
     <div class="search-container">
-        <input type="text" id="videoUrl" placeholder="Paste YouTube link here (e.g., https://www.youtube.com/watch?v=...)">
+        <input type="text" id="videoUrl" placeholder="Paste YouTube link here (e.g., https://youtube.com...)">
         <button class="fetch-btn" onclick="getTranscript()">Fetch Text</button>
     </div>
     
@@ -137,10 +137,8 @@
     <div id="output">Your transcript will appear here...</div>
 
     <script>
-        // Your integrated Supadata API Key
         const MY_SUPADATA_KEY = "sd_131232fbc0989acf458c7606ff1a9ee6";
 
-        // Light/Dark Mode Logic
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             if (currentTheme === 'dark') {
@@ -150,7 +148,6 @@
             }
         }
 
-        // Copy Text Logic
         function copyToClipboard() {
             const outputText = document.getElementById('output').innerText;
             if (outputText === "Your transcript will appear here..." || outputText.trim() === "" || outputText.startsWith("Error:")) {
@@ -165,7 +162,19 @@
             });
         }
 
-        // Data Fetching Logic
+        // Clean function to strip sound tags like [music], [Laughter], (applause)
+        function cleanSoundTags(text) {
+            if (!text) return "";
+            
+            // This rule matches anything inside square brackets [] or parentheses ()
+            let clean = text.replace(/\[.*?\]|\(.*?\)/gi, "");
+            
+            // Clean up any double spaces left behind by the deleted words
+            clean = clean.replace(/\s+/g, " ").trim();
+            
+            return clean;
+        }
+
         async function getTranscript() {
             const urlInput = document.getElementById('videoUrl').value.trim();
             const outputDiv = document.getElementById('output');
@@ -177,8 +186,7 @@
             
             outputDiv.innerText = "Connecting to Supadata engines and processing captions...";
 
-            // CORRECTED SYSTEM ROUTING ADDRESS HERE
-            const targetUrl = 'https://api.supadata.ai/v1/transcript?url=' + encodeURIComponent(urlInput) + '&text=true';
+            const targetUrl = 'https://supadata.ai' + encodeURIComponent(urlInput) + '&text=true';
 
             try {
                 const response = await fetch(targetUrl, {
@@ -193,18 +201,21 @@
                 }
 
                 const data = await response.json();
+                let rawTranscript = "";
                 
-                // Handle if data comes back as a direct string or a segmented array
                 if (data.content && typeof data.content === 'string') {
-                    outputDiv.innerText = data.content;
+                    rawTranscript = data.content;
                 } else if (Array.isArray(data.content)) {
-                    const paragraph = data.content.map(function(item) { return item.text; }).join(' ');
-                    outputDiv.innerText = paragraph;
+                    rawTranscript = data.content.map(function(item) { return item.text; }).join(' ');
                 } else if (data.transcript) {
-                    outputDiv.innerText = data.transcript;
+                    rawTranscript = data.transcript;
                 } else {
                     outputDiv.innerText = "No readable text track found inside this video's payload.";
+                    return;
                 }
+
+                // Filter out the music and sounds tags before writing to screen
+                outputDiv.innerText = cleanSoundTags(rawTranscript);
 
             } catch (error) {
                 outputDiv.innerText = "Error: " + error.message;
