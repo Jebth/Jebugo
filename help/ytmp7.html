@@ -390,12 +390,10 @@
 
   @keyframes pulse { from { opacity: 0.35; } to { opacity: 1; } }
 
-  #engineFrame {
-    width: 100%;
-    height: 150px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: #fff;
+  .mount-cap {
+    margin: 0 0 -4px 2px;
+    font-size: 0.68rem;
+    opacity: 0.7;
   }
 
   .widget-mount {
@@ -407,6 +405,14 @@
   }
 
   .widget-mount iframe { display: block; width: 100%; border: 0; }
+
+  #engineFrame {
+    width: 100%;
+    height: 150px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+  }
 
   .out-links { display: flex; flex-wrap: wrap; gap: 6px 18px; }
 
@@ -557,7 +563,7 @@
 
 <header>
   <h1>ytmp7</h1>
-  <p>Pull audio or video out of any YouTube link — preview it here first, then grab the file. Everything you extract is logged below, locally in this browser only.</p>
+  <p>Pull audio or video out of any YouTube link — vevioz’s own widget handles it when it’s alive, a chain of backup engines steps in when it isn’t. Everything is logged below, locally in this browser only.</p>
 </header>
 
 <main>
@@ -568,7 +574,7 @@
         <h2>extractor</h2>
         <div class="info" tabindex="0">
           <span class="info-trigger">/?</span>
-          <div class="tooltip">Routes your link through a chain of engines: cobalt (true mp3/1080p, direct links) → piped (direct m4a/720p files, buffered in-browser) → vevioz’s own official widget → widget mirrors. Failed engines are named in the status line and skipped; “next engine” skips by hand.</div>
+          <div class="tooltip">Your link goes to vevioz’s OWN official embed first — their buttons, their rules. If their embed doesn’t render or answers an error, the chain walks on: their widget frames (status-probed) → cobalt → piped → mirror frames. Every failure is named in the status line; “next engine” skips by hand.</div>
         </div>
       </div>
       <button class="folder-arrow" id="arrow-extractor" aria-label="Toggle extractor" onclick="toggleFolder('extractor')">▼</button>
@@ -589,13 +595,13 @@
 
       <button class="row" id="btn-mp3" type="button">
         <span class="glyph">├─</span>
-        <span class="name">extract audio <span class="fmt fmt-mp3">mp3 / m4a</span></span>
+        <span class="name">extract audio <span class="fmt fmt-mp3">vevioz first</span></span>
         <span class="go">❯❯❯❯</span>
       </button>
 
       <button class="row" id="btn-mp4" type="button">
         <span class="glyph">└─</span>
-        <span class="name">extract video <span class="fmt fmt-mp4">mp4 / webm</span></span>
+        <span class="name">extract video <span class="fmt fmt-mp4">vevioz first</span></span>
         <span class="go">❯❯❯❯</span>
       </button>
 
@@ -605,13 +611,14 @@
           <span id="statusText">idle</span>
         </div>
 
+        <p class="mount-cap" id="mountCap" hidden>├─ vevioz’s own buttons — mounted from their official embed, click inside them</p>
+        <div class="widget-mount" id="widgetMount" hidden></div>
+
         <a class="row" id="directRow" target="_blank" rel="noopener" hidden>
           <span class="glyph">├─</span>
           <span class="name">download file <span class="fmt" id="directFmt">mp3</span></span>
           <span class="go">❯❯❯❯</span>
         </a>
-
-        <div class="widget-mount" id="widgetMount" hidden></div>
 
         <iframe id="engineFrame" src="about:blank" scrolling="no" title="download gateway" hidden></iframe>
 
@@ -620,7 +627,7 @@
           <button id="cycleGateway" type="button" hidden>engine looks dead? try the next one ❯</button>
         </div>
 
-        <p class="warning-tag">engines are third-party services — nothing passes through this page. direct links expire, so download promptly. widget frames are cross-origin and can’t be verified; if one shows an error page, cycle engines.</p>
+        <p class="warning-tag">engines are third-party services — nothing passes through this page. if vevioz’s own website can’t download a video either, no embed here can: their widget talks to the same server. direct links expire, so download promptly.</p>
       </div>
 
     </nav>
@@ -699,6 +706,29 @@
     }
   };
 
+  /* ==================================================================
+     VEVIOZ OFFICIAL EMBED — THE ONE PLACE TO PASTE THEIR REAL SNIPPET
+     ------------------------------------------------------------------
+     I can't open vevioz.com's docs from where I sit, so this block is
+     my best-known convention, pre-filled. If their site/docs publish
+     different embed code (open vevioz.com, view source on their
+     downloader, or check their github), copy the values here:
+       script    → the src of their <script> tag
+       idAttr    → attribute that carries the bare video id
+       urlAttr   → attribute that carries the full youtube link
+       formatAttr / formatMp3 / formatMp4 → the rest of their config
+     Two conventions are tried automatically (id form, then link form)
+     before the chain moves on, so a wrong guess costs nothing.
+  ================================================================== */
+  var VEVIOZ = {
+    script: 'https://api.vevioz.com/assets/js/button.js',
+    idAttr: 'data-id',
+    urlAttr: 'data-url',
+    formatAttr: 'data-format',
+    formatMp3: 'mp3',
+    formatMp4: 'videos'
+  };
+
   /* ---------- youtube id extraction ---------- */
   function getYouTubeId(raw) {
     if (!raw) return null;
@@ -709,24 +739,21 @@
   }
 
   /* ---------- resolver engines ----------
-     order = priority. types:
-       cobalt — JSON api, real status codes, true mp3/1080p direct links
-       piped  — JSON api, direct m4a/720p streams the page buffers itself
-       script — vevioz's OWN official embed (button.js); its internals always
-                point at whatever route is currently live on their server
-       frame  — hand-built widget iframes; last resort, status-blind
-     kwiatekmiki was removed: its domain stopped resolving. community
-     instances rot — swap any single line here when one dies. */
+     vevioz's OWN embed runs first (two attribute conventions), then
+     their documented frame routes (status-probed), then the JSON
+     engines, then mirror frames. My invented @widget/@button routes
+     from last round are GONE — the documented ones stay. */
   var ENGINES = [
-    { name: 'cobalt·canine',    type: 'cobalt', endpoint: 'https://cobalt.canine.tools/' },
-    { name: 'cobalt·otomir',    type: 'cobalt', endpoint: 'https://co.otomir23.me/' },
-    { name: 'piped·kavin',      type: 'piped',  base: 'https://pipedapi.kavin.rocks' },
-    { name: 'piped·adminforge', type: 'piped',  base: 'https://pipedapi.adminforge.de' },
-    { name: 'vevioz·official',  type: 'script', src: 'https://api.vevioz.com/assets/js/button.js' },
-    { name: 'vevioz·@widget',   type: 'frame',  tpl: 'https://api.vevioz.com/@widget/{f}/{id}' },
-    { name: 'vevioz·@button',   type: 'frame',  tpl: 'https://api.vevioz.com/@button/{f}/{id}' },
-    { name: 'yt-download',      type: 'frame',  tpl: 'https://api.yt-download.org/api/button/{f}/{id}' },
-    { name: 'downloaderto',     type: 'frame',  tpl: 'https://api.downloaderto.com/api/button/{f}/{id}' }
+    { name: 'vevioz·embed-id',   type: 'veviozScript', attr: 'id' },
+    { name: 'vevioz·embed-link', type: 'veviozScript', attr: 'url' },
+    { name: 'vevioz·widget',     type: 'frame', tpl: 'https://api.vevioz.com/api/widget/{f}/{id}' },
+    { name: 'vevioz·button',     type: 'frame', tpl: 'https://api.vevioz.com/api/button/{f}/{id}' },
+    { name: 'cobalt·canine',     type: 'cobalt', endpoint: 'https://cobalt.canine.tools/' },
+    { name: 'cobalt·otomir',     type: 'cobalt', endpoint: 'https://co.otomir23.me/' },
+    { name: 'piped·kavin',       type: 'piped',  base: 'https://pipedapi.kavin.rocks' },
+    { name: 'piped·adminforge',  type: 'piped',  base: 'https://pipedapi.adminforge.de' },
+    { name: 'yt-download',       type: 'frame',  tpl: 'https://api.yt-download.org/api/button/{f}/{id}' },
+    { name: 'downloaderto',      type: 'frame',  tpl: 'https://api.downloaderto.com/api/button/{f}/{id}' }
   ];
 
   var ENGINE_KEY = 'ytmp7Engine';
@@ -761,6 +788,7 @@
   var directFmt = document.getElementById('directFmt');
   var engineFrame = document.getElementById('engineFrame');
   var widgetMount = document.getElementById('widgetMount');
+  var mountCap = document.getElementById('mountCap');
   var openTab = document.getElementById('openTab');
   var cycleBtn = document.getElementById('cycleGateway');
   var previewWrap = document.getElementById('previewWrap');
@@ -824,7 +852,7 @@
     if (e.name === 'AbortError') return 'timeout';
     var m = String(e.message || e);
     if (m === 'Failed to fetch') return 'blocked or unreachable';
-    return m.slice(0, 40) || 'unreachable';
+    return m.slice(0, 48) || 'unreachable';
   }
 
   function sanitizeFilename(name) {
@@ -833,6 +861,119 @@
       .replace(/\s+/g, ' ')
       .trim()
       .slice(0, 80) || 'video';
+  }
+
+  /* ---------- status probe ----------
+     The 405 you kept seeing was readable by the BROWSER (it rendered the
+     error page) but invisible to the old no-cors probe — any response,
+     even an error, counted as "alive". This is the fix: a normal CORS
+     fetch returns the REAL status code whenever the server sends
+     Access-Control-Allow-Origin (public APIs usually do). If it does,
+     we read the 405/404/429 ourselves and skip the dead engine with a
+     named reason. If CORS blocks the peek, we get null and fall back
+     to the blind path — iframe shown, human judges. */
+  function peekStatus(url, timeoutMs) {
+    return new Promise(function (resolve) {
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = setTimeout(function () {
+        if (ctrl) { try { ctrl.abort(); } catch (e) {} }
+      }, timeoutMs || 4000);
+      fetch(url, { mode: 'cors', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+        .then(function (r) { clearTimeout(timer); resolve(r.status); })
+        .catch(function () { clearTimeout(timer); resolve(null); });
+    });
+  }
+
+  /* dns-level liveness for when the status peek is CORS-blinded */
+  function probe(url) {
+    return new Promise(function (resolve) {
+      var settled = false;
+      function finish(ok) {
+        if (!settled) { settled = true; clearTimeout(timer); resolve(ok); }
+      }
+      var timer = setTimeout(function () { finish(false); }, 4000);
+      try {
+        fetch(url, { mode: 'no-cors', cache: 'no-store' })
+          .then(function () { finish(true); })
+          .catch(function () { finish(false); });
+      } catch (e) { finish(false); }
+    });
+  }
+
+  /* ---------- engine type: vevioz's OWN official embed script ---------- */
+  function runVeviozScript(eng, id, fmt) {
+    return new Promise(function (resolve, reject) {
+      widgetMount.textContent = '';
+      var before = Array.prototype.slice.call(document.body.querySelectorAll('iframe'));
+
+      var s = document.createElement('script');
+      s.src = VEVIOZ.script;
+      s.async = true;
+      if (eng.attr === 'url') {
+        s.setAttribute(VEVIOZ.urlAttr, 'https://www.youtube.com/watch?v=' + id);
+      } else {
+        s.setAttribute(VEVIOZ.idAttr, id);
+      }
+      s.setAttribute(VEVIOZ.formatAttr, fmt === 'mp3' ? VEVIOZ.formatMp3 : VEVIOZ.formatMp4);
+
+      var poll = null, kill = null, ticks = 0;
+
+      function cleanup() { if (poll) clearInterval(poll); if (kill) clearTimeout(kill); }
+
+      /* settle: a frame appeared — validate where it points, then peek its status */
+      function settle(fr) {
+        cleanup();
+        var raw = fr.getAttribute('src') || '';
+        if (!raw) { reject(new Error('their embed mounted a frame with no target')); return; }
+        var abs;
+        try { abs = new URL(raw, location.href); } catch (e) { reject(new Error('their embed built a broken url')); return; }
+        /* if their script pointed at OUR site, the attribute convention is wrong */
+        if (abs.origin === location.origin) {
+          reject(new Error('embed pointed at our own site — wrong attribute form')); return;
+        }
+        peekStatus(abs.href, 3500).then(function (st) {
+          if (st !== null && st >= 400) reject(new Error('their own frame answered http ' + st));
+          else resolve(true);
+        });
+      }
+
+      s.onerror = function () { cleanup(); reject(new Error('their embed script is unreachable')); };
+
+      poll = setInterval(function () {
+        ticks++;
+
+        /* their widget may render inside the mount, or into <body> — catch both */
+        var fr = widgetMount.querySelector('iframe');
+        if (!fr) {
+          var now = Array.prototype.slice.call(document.body.querySelectorAll('iframe'));
+          for (var i = 0; i < now.length; i++) {
+            if (before.indexOf(now[i]) === -1 && now[i] !== engineFrame && now[i] !== previewFrame) {
+              widgetMount.appendChild(now[i]); /* relocate: it reloads inside our mount */
+              fr = widgetMount.querySelector('iframe');
+              break;
+            }
+          }
+        }
+
+        if (fr) { settle(fr); return; }
+
+        /* link/button-style widget (no iframe) — accept it blind */
+        if (ticks >= 4 && widgetMount.querySelector('a, button, div')) {
+          cleanup();
+          resolve(true);
+          return;
+        }
+
+        if (ticks >= 12) { cleanup(); reject(new Error('their embed rendered nothing')); }
+      }, 250);
+
+      kill = setTimeout(function () {
+        cleanup();
+        reject(new Error('their embed timed out'));
+      }, 7000);
+
+      widgetMount.appendChild(s);
+    });
   }
 
   /* ---------- engine type: cobalt (JSON) ---------- */
@@ -847,10 +988,8 @@
       filenameStyle: 'basic'
     });
 
-    /* attempt 1: normal JSON post (triggers a CORS preflight).
-       attempt 2: same body as text/plain — a "simple" request, no preflight.
-       canine.tools answers OPTIONS without CORS headers, which kills attempt 1
-       before it's ever sent; attempt 2 only needs ACAO on the POST itself. */
+    /* attempt 1: JSON content-type (triggers CORS preflight).
+       attempt 2: same body as text/plain — a "simple" request, no preflight. */
     var attempts = [
       { 'Accept': 'application/json', 'Content-Type': 'application/json' },
       { 'Accept': 'application/json', 'Content-Type': 'text/plain;charset=UTF-8' }
@@ -883,7 +1022,7 @@
         throw new Error((d && d.error && d.error.code) ? d.error.code : 'refused');
       } catch (e) {
         lastErr = e;
-        if (e instanceof TypeError && a === 0) continue; /* network/CORS → try preflight-free */
+        if (e instanceof TypeError && a === 0) continue;
         throw e;
       } finally {
         if (timer) clearTimeout(timer);
@@ -898,7 +1037,7 @@
     (d.audioStreams || []).forEach(function (s) {
       if (!s.url) return;
       var isMp4 = (s.mimeType || '').indexOf('audio/mp4') === 0;
-      var score = (s.bitrate || 0) + (isMp4 ? 1000000 : 0); /* prefer m4a — editors like it */
+      var score = (s.bitrate || 0) + (isMp4 ? 1000000 : 0);
       if (score > bestScore) { bestScore = score; best = s; }
     });
     return best;
@@ -907,7 +1046,7 @@
   function pickVideo(d) {
     var best = null, bestScore = -1;
     (d.videoStreams || []).forEach(function (s) {
-      if (!s.url || s.videoOnly) return; /* progressive only — these carry sound */
+      if (!s.url || s.videoOnly) return;
       var h = parseInt(String(s.quality || ''), 10) || 0;
       if (h > 1080) return;
       var isMp4 = (s.mimeType || '').indexOf('video/mp4') === 0;
@@ -978,42 +1117,6 @@
     return { label: label, filename: filename, mb: buf.mb };
   }
 
-  /* ---------- engine type: vevioz's own official widget script ---------- */
-  function tryScriptWidget(eng, id, fmt) {
-    return new Promise(function (resolve, reject) {
-      widgetMount.textContent = '';
-      var s = document.createElement('script');
-      s.src = eng.src;
-      s.async = true;
-      s.setAttribute('data-id', id);
-      s.setAttribute('data-format', fmt === 'mp3' ? 'mp3' : 'videos');
-      s.onload = function () {
-        setTimeout(function () {
-          if (widgetMount.querySelector('iframe')) resolve(true);
-          else reject(new Error('script loaded but injected nothing'));
-        }, 900);
-      };
-      s.onerror = function () { reject(new Error('script unreachable')); };
-      widgetMount.appendChild(s);
-    });
-  }
-
-  /* ---------- engine type: frame probe (dns-level only — statuses invisible) ---------- */
-  function probe(url) {
-    return new Promise(function (resolve) {
-      var settled = false;
-      function finish(ok) {
-        if (!settled) { settled = true; clearTimeout(timer); resolve(ok); }
-      }
-      var timer = setTimeout(function () { finish(false); }, 4000);
-      try {
-        fetch(url, { mode: 'no-cors', cache: 'no-store' })
-          .then(function () { finish(true); })
-          .catch(function () { finish(false); });
-      } catch (e) { finish(false); }
-    });
-  }
-
   /* ---------- the resolver chain ---------- */
   async function runResolve(id, fmt, skipName, logOnServe) {
     cur = { id: id, fmt: fmt, title: null, list: orderedEngines(), pos: -1 };
@@ -1025,6 +1128,7 @@
     engineFrame.src = 'about:blank';
     widgetMount.hidden = true;
     widgetMount.textContent = '';
+    mountCap.hidden = true;
     openTab.hidden = true;
     cycleBtn.hidden = false;
 
@@ -1042,6 +1146,17 @@
       cur.pos = pos;
 
       try {
+        if (eng.type === 'veviozScript') {
+          setStatus('busy', 'loading vevioz’s own official embed (' + (eng.attr === 'url' ? 'link form' : 'id form') + ')…');
+          await runVeviozScript(eng, id, fmt);
+          store.set(ENGINE_KEY, eng.name);
+          widgetMount.hidden = false;
+          mountCap.hidden = false;
+          setStatus('ready', 'vevioz’s own widget is mounted below — those are their buttons running their current code. click inside them to download.');
+          if (logOnServe) addHistory(id, fmt, null);
+          return;
+        }
+
         if (eng.type === 'cobalt') {
           setStatus('busy', 'asking ' + eng.name + ' for a direct file…');
           var fileUrl = await tryCobalt(eng.endpoint, id, fmt);
@@ -1062,26 +1177,21 @@
           return;
         }
 
-        if (eng.type === 'script') {
-          setStatus('busy', 'loading ' + eng.name + ' — their own live embed…');
-          await tryScriptWidget(eng, id, fmt);
-          store.set(ENGINE_KEY, eng.name);
-          widgetMount.hidden = false;
-          setStatus('ready', eng.name + ' mounted its own widget above — use the button inside it. this is their embed running their current routes, so it stays correct even when they change them.');
-          if (logOnServe) addHistory(id, fmt, null);
-          return;
-        }
-
+        /* frame engines: peek the real status first, show the iframe only if it passes */
         var url = frameUrl(eng, id, fmt);
-        setStatus('busy', 'linking ' + eng.name + '…');
-        var alive = await probe(originOf(url));
-        if (!alive) throw new Error('unreachable');
+        setStatus('busy', 'knocking on ' + eng.name + '…');
+        var st = await peekStatus(url, 4000);
+        if (st !== null && st >= 400) throw new Error('http ' + st);
+        if (st === null) {
+          var alive = await probe(originOf(url));
+          if (!alive) throw new Error('unreachable');
+        }
         store.set(ENGINE_KEY, eng.name);
         engineFrame.hidden = false;
         engineFrame.src = url;
         openTab.href = url;
         openTab.hidden = false;
-        setStatus('ready', eng.name + ' served its widget — press the button inside the frame. if the frame shows an error page, hit “next engine”.');
+        setStatus('ready', eng.name + ' is live in the frame below — press its button to download. ' + (st === null ? '(status unreadable — shown on trust)' : '(status ' + st + ')'));
         if (logOnServe) addHistory(id, fmt, null);
         return;
       } catch (e) {
@@ -1090,7 +1200,7 @@
     }
 
     engineFrame.src = 'about:blank';
-    setStatus('error', 'every engine failed — ' + notes.join(' · ') + '. these are third-party services; retry in a minute (http 429 = rate-limited) or swap a line in the ENGINES list.');
+    setStatus('error', 'every engine failed — ' + notes.join(' · ') + '. quick check: open vevioz.com itself and try a download there. if their own site fails too, their server is down and no embed can fix it — retry later or swap a line in the ENGINES list.');
   }
 
   async function processConversion(fmt) {
@@ -1106,6 +1216,7 @@
       engineFrame.src = 'about:blank';
       widgetMount.hidden = true;
       widgetMount.textContent = '';
+      mountCap.hidden = true;
       openTab.hidden = true;
       cycleBtn.hidden = true;
       setStatus('error', 'that doesn’t read as a youtube link — paste a full watch?v=, shorts, youtu.be or music.youtube url (a bare 11-character id works too).');
@@ -1151,7 +1262,6 @@
   function addHistory(id, format, title) {
     var list = loadHistory();
     var last = list[list.length - 1];
-    /* same file pulled again within 5 minutes → don't spam a duplicate card */
     if (last && last.id === id && last.format === format && Date.now() - last.ts < 300000) {
       if (title && !last.title) { last.title = title; saveHistoryList(list); renderHistory(); }
       return;
