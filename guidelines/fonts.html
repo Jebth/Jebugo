@@ -1,1 +1,512 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="normal">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Font Library</title>
+<script>
+  (function () {
+    try {
+      var savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    } catch (e) {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Minecraft Bold';
+    src: url('../webfiles/MinecraftBold-nMK1.otf') format('opentype');
+    font-display: swap;
+  }
 
+  @font-face {
+    font-family: 'Minecraft';
+    src: url('../webfiles/MinecraftRegular-Bmg3.otf') format('opentype');
+    font-display: swap;
+  }
+
+  :root {
+    --bg: #FF960C;
+    --title: #FF7100;
+    --text: #F7F7F7;
+    --line: #2E1A00;
+    --card-bg: #3d2402;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18);
+    --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
+  }
+
+  html[data-theme="dark"] {
+    --bg: #121212;
+    --title: #1e1e1e;
+    --text: #f0f0f0;
+    --line: #000000;
+    --card-bg: #1a1a1a;
+    --shadow: 0 2px 10px rgba(255, 255, 255, 0.18);
+    --shadow-hover: 0 10px 28px rgba(255, 255, 255, 0.4);
+  }
+
+  html[data-theme="light"] {
+    --bg: #f5f5f5;
+    --title: #ffffff;
+    --text: #222222;
+    --line: #cfcfcf;
+    --card-bg: #ffffff;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18);
+    --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  html { scrollbar-width: thin; scrollbar-color: var(--line) var(--bg); }
+  ::-webkit-scrollbar { width: 12px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; border: 3px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--title); }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 72px 24px 48px;
+  }
+
+  main {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .nav-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.85rem;
+    border: 1px solid var(--line);
+    padding: 9px 16px;
+    border-radius: 5px;
+    background: var(--title);
+    transition: background 0.15s ease, padding-left 0.15s ease;
+    align-self: flex-start;
+  }
+  .nav-back:hover { background: #E06800; padding-left: 20px; }
+
+  .folder {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s ease;
+  }
+  .folder:hover, .folder:focus-within { box-shadow: var(--shadow-hover); }
+
+  .folder-head {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--line);
+    background: var(--title);
+    border-radius: 5px 5px 0 0;
+  }
+  .folder-head h1 {
+    font-family: 'Minecraft Bold', 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--text);
+    margin: 0 0 6px;
+  }
+  .folder-head p {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.85rem;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+  .folder-body {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .btn {
+    padding: 11px 18px;
+    font-size: 0.82rem;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    background: rgba(0, 0, 0, 0.15);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+  .btn:hover { background: rgba(0, 0, 0, 0.28); }
+  .btn.primary { background: var(--title); }
+  .btn.primary:hover { background: #E06800; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    font-family: 'IBM Plex Mono', monospace;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--text);
+    color: #222;
+  }
+
+  .font-card {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .font-card .font-sample {
+    font-size: 1.5rem;
+    padding: 14px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    word-break: break-word;
+  }
+
+  .font-card .font-meta {
+    font-size: 0.72rem;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .font-card .card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .mini-btn {
+    font-size: 0.72rem;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.15);
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .mini-btn:hover { background: rgba(0, 0, 0, 0.28); }
+  .mini-btn.danger { border-color: #ffb4b4; color: #ffb4b4; }
+  .mini-btn.danger:hover { background: rgba(255, 100, 100, 0.2); }
+
+  .upload-area {
+    border: 2px dashed var(--line);
+    border-radius: 5px;
+    padding: 20px;
+    text-align: center;
+    opacity: 0.8;
+  }
+
+  .upload-area input[type="file"] {
+    display: none;
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 22px;
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: var(--shadow-hover);
+  }
+  .modal-box h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-family: 'Minecraft Bold', 'Space Grotesk', sans-serif;
+  }
+
+  .field-label {
+    font-size: 0.72rem;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 48px 16px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <a href="../index.html" class="nav-back">← Back to Directory</a>
+
+  <section class="folder">
+    <div class="folder-head">
+      <h1>Font Library</h1>
+      <p>All the fonts I use across my website and videos. Click to download or add your own. Edit the label and description of any font to keep it organized.</p>
+    </div>
+    <div class="folder-body">
+      <div id="fontsList" style="display:flex;flex-direction:column;gap:16px;"></div>
+      <div class="upload-area">
+        <p style="margin:0 0 10px;">Upload a new font file (.ttf, .otf, .woff, .woff2)</p>
+        <label class="btn primary" for="fontFileInput">+ Add Font</label>
+        <input type="file" id="fontFileInput" accept=".ttf,.otf,.woff,.woff2" onchange="handleFontUpload(event)" />
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <h2>Edit Font Details</h2>
+    <div>
+      <div class="field-label">Display Name / Label</div>
+      <input type="text" id="editName" placeholder="e.g. Main Title Font" />
+    </div>
+    <div>
+      <div class="field-label">CSS Font Family Name</div>
+      <input type="text" id="editFamily" placeholder="e.g. My Custom Font" />
+    </div>
+    <div>
+      <div class="field-label">Description / Use Case</div>
+      <textarea id="editDescription" rows="3" placeholder="Where and how you use this font..."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="saveEdit()">Save</button>
+      <button class="btn" onclick="closeEdit()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const FONTS_KEY = 'fontLibrary';
+  let fonts = [];
+  let editingId = null;
+
+  // Default fonts (pre-populated from the site's existing usage)
+  const DEFAULT_FONTS = [
+    {
+      id: 'f1',
+      name: 'Minecraft Bold',
+      family: 'Minecraft Bold',
+      description: 'Used for main page titles, folder headers, and bold callouts across the site.',
+      source: '../webfiles/MinecraftBold-nMK1.otf',
+      sampleText: 'Minecraft Bold',
+      isLocal: true
+    },
+    {
+      id: 'f2',
+      name: 'Minecraft Regular',
+      family: 'Minecraft',
+      description: 'The default body font for most text across the website.',
+      source: '../webfiles/MinecraftRegular-Bmg3.otf',
+      sampleText: 'Minecraft Regular',
+      isLocal: true
+    },
+    {
+      id: 'f3',
+      name: 'Space Grotesk',
+      family: 'Space Grotesk',
+      description: 'Modern sans-serif used as a fallback for titles and headings.',
+      source: 'https://fonts.google.com/specimen/Space+Grotesk',
+      sampleText: 'Space Grotesk',
+      isLocal: false
+    },
+    {
+      id: 'f4',
+      name: 'IBM Plex Mono',
+      family: 'IBM Plex Mono',
+      description: 'Monospace font used for textareas, inputs, code-like displays, and fallback.',
+      source: 'https://fonts.google.com/specimen/IBM+Plex+Mono',
+      sampleText: 'IBM Plex Mono 0123',
+      isLocal: false
+    }
+  ];
+
+  function loadFonts() {
+    try {
+      const raw = localStorage.getItem(FONTS_KEY);
+      if (raw) {
+        fonts = JSON.parse(raw);
+      } else {
+        fonts = JSON.parse(JSON.stringify(DEFAULT_FONTS));
+        saveFonts();
+      }
+    } catch (e) {
+      fonts = JSON.parse(JSON.stringify(DEFAULT_FONTS));
+    }
+  }
+
+  function saveFonts() {
+    try {
+      localStorage.setItem(FONTS_KEY, JSON.stringify(fonts));
+    } catch (e) {
+      alert('Could not save. Font files may be too large for localStorage.');
+    }
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function renderFonts() {
+    const listEl = document.getElementById('fontsList');
+    listEl.innerHTML = '';
+
+    fonts.forEach(function (font) {
+      const card = document.createElement('div');
+      card.className = 'font-card';
+
+      const sampleStyle = font.isLocal || font.fileData
+        ? `font-family: '${font.family}', sans-serif;`
+        : `font-family: '${font.family}', sans-serif;`;
+
+      card.innerHTML = `
+        <div class="font-meta">${escapeHtml(font.family)}</div>
+        <input type="text" value="${escapeHtml(font.name)}" placeholder="Display name / label"
+          style="font-weight:bold;font-size:1rem;padding:8px 10px;"
+          onchange="quickUpdate('${font.id}', 'name', this.value)" />
+        <div class="font-sample" style="${sampleStyle}">${escapeHtml(font.sampleText || font.family)}</div>
+        <textarea rows="2" placeholder="Description / what this font is used for..."
+          onchange="quickUpdate('${font.id}', 'description', this.value)">${escapeHtml(font.description)}</textarea>
+        <div class="card-actions">
+          <a class="mini-btn" href="${escapeHtml(font.fileData || font.source)}" download="${escapeHtml(font.name)}.otf">⬇ Download</a>
+          <button class="mini-btn" onclick="openEdit('${font.id}')">✎ Edit</button>
+          <button class="mini-btn danger" onclick="deleteFont('${font.id}')">✕ Remove</button>
+        </div>
+      `;
+
+      // Apply the custom font dynamically if it has base64 data
+      if (font.fileData && !font.injected) {
+        const style = document.createElement('style');
+        style.textContent = `@font-face { font-family: '${font.family}'; src: url('${font.fileData}') format('opentype'); }`;
+        document.head.appendChild(style);
+        font.injected = true;
+      }
+
+      listEl.appendChild(card);
+    });
+  }
+
+  function quickUpdate(id, field, value) {
+    const font = fonts.find(function (f) { return f.id === id; });
+    if (font) {
+      font[field] = value;
+      saveFonts();
+    }
+  }
+
+  function openEdit(id) {
+    editingId = id;
+    const font = fonts.find(function (f) { return f.id === id; });
+    if (!font) return;
+    document.getElementById('editName').value = font.name || '';
+    document.getElementById('editFamily').value = font.family || '';
+    document.getElementById('editDescription').value = font.description || '';
+    document.getElementById('editModal').classList.add('show');
+  }
+
+  function closeEdit() {
+    editingId = null;
+    document.getElementById('editModal').classList.remove('show');
+  }
+
+  function saveEdit() {
+    if (!editingId) return;
+    const font = fonts.find(function (f) { return f.id === editingId; });
+    if (font) {
+      font.name = document.getElementById('editName').value.trim() || font.name;
+      font.family = document.getElementById('editFamily').value.trim() || font.family;
+      font.description = document.getElementById('editDescription').value.trim();
+      saveFonts();
+      renderFonts();
+    }
+    closeEdit();
+  }
+
+  function deleteFont(id) {
+    if (!confirm('Remove this font from your library?')) return;
+    fonts = fonts.filter(function (f) { return f.id !== id; });
+    saveFonts();
+    renderFonts();
+  }
+
+  function handleFontUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Font file is larger than 5MB. localStorage may not be able to store it.');
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (ev) {
+      const baseName = file.name.replace(/\.(ttf|otf|woff|woff2)$/i, '');
+      fonts.push({
+        id: 'f' + Date.now().toString(36),
+        name: baseName,
+        family: baseName,
+        description: 'Newly uploaded font. Add a description to remember what it\'s for.',
+        fileData: ev.target.result,
+        sampleText: baseName + ' AaBbCc 123',
+        isLocal: true
+      });
+      saveFonts();
+      renderFonts();
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }
+
+  // init
+  loadFonts();
+  renderFonts();
+</script>
+
+</body>
+</html>
