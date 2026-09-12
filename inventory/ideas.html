@@ -1,1 +1,404 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="normal">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ideas</title>
+<script>
+  (function () {
+    try {
+      var savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    } catch (e) {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Minecraft Bold';
+    src: url('../webfiles/MinecraftBold-nMK1.otf') format('opentype');
+    font-display: swap;
+  }
 
+  @font-face {
+    font-family: 'Minecraft';
+    src: url('../webfiles/MinecraftRegular-Bmg3.otf') format('opentype');
+    font-display: swap;
+  }
+
+  :root {
+    --bg: #FF960C;
+    --title: #FF7100;
+    --text: #F7F7F7;
+    --line: #2E1A00;
+    --card-bg: #3d2402;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18);
+    --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
+  }
+
+  html[data-theme="dark"] {
+    --bg: #121212;
+    --title: #1e1e1e;
+    --text: #f0f0f0;
+    --line: #000000;
+    --card-bg: #1a1a1a;
+    --shadow: 0 2px 10px rgba(255, 255, 255, 0.18);
+    --shadow-hover: 0 10px 28px rgba(255, 255, 255, 0.4);
+  }
+
+  html[data-theme="light"] {
+    --bg: #f5f5f5;
+    --title: #ffffff;
+    --text: #222222;
+    --line: #cfcfcf;
+    --card-bg: #ffffff;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18);
+    --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) var(--bg);
+  }
+
+  ::-webkit-scrollbar { width: 12px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 8px;
+    border: 3px solid var(--bg);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--title); }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 72px 24px 48px;
+  }
+
+  main {
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .nav-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 28px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.85rem;
+    border: 1px solid var(--line);
+    padding: 9px 16px;
+    border-radius: 5px;
+    background: var(--title);
+    transition: background 0.15s ease, padding-left 0.15s ease;
+  }
+
+  .nav-back:hover {
+    background: #E06800;
+    padding-left: 20px;
+  }
+
+  .folder {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .folder:hover,
+  .folder:focus-within {
+    box-shadow: var(--shadow-hover);
+  }
+
+  .folder-head {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--line);
+    background: var(--title);
+    border-radius: 5px 5px 0 0;
+  }
+
+  .folder-head h1 {
+    font-family: 'Minecraft Bold', 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--text);
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .folder-head p {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.85rem;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+
+  .folder-body {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .action-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .action-row h2 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+
+  .btn {
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    background: rgba(0, 0, 0, 0.15);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+
+  .btn:hover { background: rgba(0, 0, 0, 0.28); }
+  .btn.primary { background: var(--title); }
+  .btn.primary:hover { background: #E06800; }
+
+  .new-idea-form {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border: 1px dashed var(--line);
+    border-radius: 5px;
+  }
+
+  .new-idea-form.open { display: flex; }
+
+  .new-idea-form textarea {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    font-family: 'IBM Plex Mono', monospace;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--text);
+    color: #222;
+    resize: vertical;
+  }
+
+  .new-idea-form .form-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .empty-state {
+    font-size: 0.85rem;
+    opacity: 0.75;
+    padding: 10px 2px;
+  }
+
+  .idea-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .idea-item {
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--card-bg);
+    padding: 14px 16px;
+  }
+
+  .idea-item .i-text {
+    white-space: pre-wrap;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+
+  .idea-item .i-meta {
+    font-size: 0.68rem;
+    color: var(--text);
+    opacity: 0.7;
+    margin-bottom: 10px;
+  }
+
+  .mini-btn {
+    font-size: 0.72rem;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+  }
+
+  .mini-btn:hover { background: rgba(255, 255, 255, 0.2); }
+  .mini-btn.danger:hover { background: #b02a2a; }
+
+  @media (max-width: 480px) {
+    body { padding: 48px 16px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <a href="../index.html" class="nav-back">← Back to Directory</a>
+
+  <section class="folder">
+    <div class="folder-head">
+      <h1>Ideas</h1>
+      <p>Concepts saved from Jeb AI, or jotted down by hand.</p>
+    </div>
+
+    <div class="folder-body">
+      <div class="action-row">
+        <h2 id="ideaCount">Your Ideas</h2>
+        <button class="btn primary" onclick="toggleNewIdeaForm()">+ New Idea</button>
+      </div>
+
+      <div class="new-idea-form" id="newIdeaForm">
+        <textarea id="newIdeaContent" rows="4" placeholder="Jot down an idea..."></textarea>
+        <div class="form-actions">
+          <button class="btn primary" onclick="saveNewIdea()">Save</button>
+          <button class="btn" onclick="toggleNewIdeaForm()">Cancel</button>
+        </div>
+      </div>
+
+      <div class="idea-list" id="ideaList"></div>
+      <div class="empty-state" id="emptyState" style="display:none;">No ideas yet — generate one in Jeb AI, or add one above.</div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const IDEAS_KEY = 'savedIdeas';
+
+  function loadIdeas() {
+    try { return JSON.parse(localStorage.getItem(IDEAS_KEY) || '[]'); } catch (e) { return []; }
+  }
+
+  function persistIdeas(list) {
+    try { localStorage.setItem(IDEAS_KEY, JSON.stringify(list)); } catch (e) {}
+  }
+
+  function toggleNewIdeaForm() {
+    document.getElementById('newIdeaForm').classList.toggle('open');
+  }
+
+  function saveNewIdea() {
+    const input = document.getElementById('newIdeaContent');
+    const text = input.value.trim();
+    if (!text) {
+      alert('Write something before saving.');
+      return;
+    }
+    const list = loadIdeas();
+    list.push({ id: Date.now().toString(36), text: text, date: new Date().toISOString(), source: 'manual' });
+    persistIdeas(list);
+    input.value = '';
+    document.getElementById('newIdeaForm').classList.remove('open');
+    renderIdeas();
+  }
+
+  function deleteIdea(id) {
+    if (!confirm('Delete this idea?')) return;
+    persistIdeas(loadIdeas().filter(function (i) { return i.id !== id; }));
+    renderIdeas();
+  }
+
+  function sendToJebai(item) {
+    try {
+      localStorage.setItem('jebai_import', JSON.stringify({ type: 'idea', title: 'Saved idea', text: item.text, source: 'idea' }));
+    } catch (e) {}
+    window.location.href = '../help/ai.html';
+  }
+
+  function formatDate(iso) {
+    try { return new Date(iso).toLocaleDateString(); } catch (e) { return ''; }
+  }
+
+  function renderIdeas() {
+    const listEl = document.getElementById('ideaList');
+    const emptyEl = document.getElementById('emptyState');
+    const list = loadIdeas().slice().reverse();
+    listEl.innerHTML = '';
+
+    document.getElementById('ideaCount').textContent = 'Your Ideas (' + list.length + ')';
+    emptyEl.style.display = list.length ? 'none' : 'block';
+
+    list.forEach(function (item) {
+      const wrap = document.createElement('div');
+      wrap.className = 'idea-item';
+
+      const meta = document.createElement('div');
+      meta.className = 'i-meta';
+      meta.textContent = formatDate(item.date) + ' · from ' + item.source;
+
+      const text = document.createElement('div');
+      text.className = 'i-text';
+      text.textContent = item.text;
+
+      const actions = document.createElement('div');
+      actions.style.display = 'flex';
+      actions.style.gap = '8px';
+
+      const jebaiBtn = document.createElement('button');
+      jebaiBtn.className = 'mini-btn';
+      jebaiBtn.type = 'button';
+      jebaiBtn.textContent = '→ Send to Jebai';
+      jebaiBtn.onclick = function () { sendToJebai(item); };
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'mini-btn danger';
+      delBtn.type = 'button';
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = function () { deleteIdea(item.id); };
+
+      actions.appendChild(jebaiBtn);
+      actions.appendChild(delBtn);
+
+      wrap.appendChild(meta);
+      wrap.appendChild(text);
+      wrap.appendChild(actions);
+      listEl.appendChild(wrap);
+    });
+  }
+
+  renderIdeas();
+</script>
+
+</body>
+</html>
