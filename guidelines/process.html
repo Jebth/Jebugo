@@ -1,1 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="normal">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Process</title>
+<script>
+  (function () {
+    try {
+      var savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    } catch (e) {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: 'Minecraft Bold'; src: url('../webfiles/MinecraftBold-nMK1.otf') format('opentype'); font-display: swap; }
+  @font-face { font-family: 'Minecraft'; src: url('../webfiles/MinecraftRegular-Bmg3.otf') format('opentype'); font-display: swap; }
 
+  :root {
+    --bg: #FF960C; --title: #FF7100; --text: #F7F7F7; --line: #2E1A00; --card-bg: #3d2402;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18); --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
+  }
+  html[data-theme="dark"] {
+    --bg: #121212; --title: #1e1e1e; --text: #f0f0f0; --line: #000000; --card-bg: #1a1a1a;
+    --shadow: 0 2px 10px rgba(255, 255, 255, 0.18); --shadow-hover: 0 10px 28px rgba(255, 255, 255, 0.4);
+  }
+  html[data-theme="light"] {
+    --bg: #f5f5f5; --title: #ffffff; --text: #222222; --line: #cfcfcf; --card-bg: #ffffff;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18); --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Minecraft', 'IBM Plex Mono', monospace; transition: background 0.2s ease, color 0.2s ease; }
+  html { scrollbar-width: thin; scrollbar-color: var(--line) var(--bg); }
+  ::-webkit-scrollbar { width: 12px; } ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; border: 3px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--title); }
+
+  body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 72px 24px 48px; }
+  main { width: 100%; max-width: 700px; display: flex; flex-direction: column; gap: 24px; }
+
+  .nav-back { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-size: 0.85rem; border: 1px solid var(--line); padding: 9px 16px; border-radius: 5px; background: var(--title); transition: background 0.15s ease, padding-left 0.15s ease; align-self: flex-start; }
+  .nav-back:hover { background: #E06800; padding-left: 20px; }
+
+  .folder { position: relative; border: 1px solid var(--line); border-radius: 5px; box-shadow: var(--shadow); transition: box-shadow 0.2s ease; }
+  .folder:hover, .folder:focus-within { box-shadow: var(--shadow-hover); }
+  .folder-head { padding: 18px 22px; border-bottom: 1px solid var(--line); background: var(--title); border-radius: 5px 5px 0 0; }
+  .folder-head h1 { font-family: 'Minecraft Bold', 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.4rem; color: var(--text); margin: 0 0 6px; letter-spacing: -0.01em; }
+  .folder-head p { margin: 0; color: var(--text); font-size: 0.85rem; opacity: 0.85; line-height: 1.5; }
+  .folder-body { padding: 22px; display: flex; flex-direction: column; gap: 16px; }
+
+  .btn { padding: 11px 18px; font-size: 0.82rem; font-family: 'Minecraft', 'IBM Plex Mono', monospace; background: rgba(0, 0.15); color: var(--text); border: 1px solid var(--line); border-radius: 5px; cursor: pointer; font-weight: bold; white-space: nowrap; transition: background 0.15s ease; }
+  .btn:hover { background: rgba(0,0,0,0.28); }
+  .btn.primary { background: var(--title); }
+  .btn.primary:hover { background: #E06800; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  input[type="text"], textarea {
+    padding: 10px  padding: 12px; font-size: 0.85rem; font-family: 'IBM Plex Mono', monospace; border: 1px solid var(--line); border-radius: 5px; background: var(--text); color: #222; }
+
+  }
+  .step-card {
+      position: relative;
+    border: 1px;
+    border: var(--line);
+    border-radius: 5px;
+ 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+  }
+  .step-card .step-header { display: flex; align-items: center; gap: 12px; }
+  .step-card .step-number { font-family: 'Minecraft Bold', sans-serif; font-size: 1.5rem; color: var(--title); min-width: 40px; text-align: center; line-height: 1; }
+  html[data-theme="light"] .step-card .step-number { color: #FF7100; }
+  html[data-theme="dark"] .step-card .step-number { color: #FF960C; }
+  .step-card .step-title-input { flex: 1; font-weight: bold; font-size: 1rem; }
+  .step-card textarea { min-height: 60px; resize: vertical; }
+  .step-card .delete-step { position: absolute; top: 12px; right: 12px; background: rgba(255, 100, 100, 0.15); border: 1px solid #ffb4b4; color: #ffb4b4; padding: 4px 8px; font-size: 0.72rem; border-radius: 4px; cursor: pointer; }
+  .step-card .delete-step:hover { background: rgba(255, 100, 100, 0.3); }
+  .empty-state { text-align: center; padding: 20px; opacity: 0.7; font-size: 0.85rem; }
+  @media (max-width: 480px) { body { padding: 48px 16px 40px; } }
+</style>
+</head>
+<body>
+
+<main>
+  <a href="../index.html" class="nav-back">← Back to Directory</a>
+
+  <section class="folder">
+    <div class="folder-head">
+      <h1>Video Process</h1>
+      <p>My step-by-step process for creating a video. Currently empty because I haven't made my first video yet — but I can plan and add steps as I learn what works for me.</p>
+    </div>
+    <div class="folder-body">
+      <div id="stepsList"></div>
+      <div class="empty-state" id="emptyState" style="display:none;">No steps yet. Add your first step below.</div>
+      <div class="btn-row">
+        <button class="btn primary" onclick="addStep()">+ Add New Step</button>
+        <button class="btn" onclick="resetToDefaults()">Reset to Default Steps</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const PROCESS_KEY = 'videoProcessSteps';
+  const DEFAULT_STEPS = [
+    { id: 's1', title: 'Ideation', description: '', notes: '' },
+    { id: 's2', title: 'Research / Outline', description: '', notes: '' },
+    { id: 's3', title: 'Scripting', description: '', notes: '' },
+    { id: 's4', title: 'Filming / Recording', description: '', notes: '' },
+    { id: 's5', title: 'Editing', description: '', notes: '' },
+    { id: 's6', title: 'Thumbnail & Title', description: '', notes: '' },
+    { id: 's7', title: 'Upload & Publish', description: '', notes: '' },
+    { id: 's8', title: 'Analytics Review', description: '', notes: '' }
+  ];
+
+  let steps = [];
+
+  function loadSteps() {
+    try {
+      const raw = localStorage.getItem(PROCESS_KEY);
+      if (raw) {
+        steps = JSON.parse(raw);
+      } else {
+        steps = JSON.parse(JSON.stringify(DEFAULT_STEPS));
+        saveSteps();
+      }
+    } catch (e) {
+      steps = JSON.parse(JSON.stringify(DEFAULT_STEPS));
+    }
+  }
+
+  function saveSteps() {
+    try { localStorage.setItem(PROCESS_KEY, JSON.stringify(steps)); } catch (e) {}
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function renderSteps() {
+    const listEl = document.getElementById('stepsList');
+    const emptyEl = document.getElementById('emptyState');
+    listEl.innerHTML = '';
+
+    if (!steps.length) {
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+
+    steps.forEach(function (step, idx) {
+      const card = document.createElement('div');
+      card.className = 'step-card';
+      card.innerHTML = `
+        <button class="delete-step" onclick="deleteStep('${step.id}')">✕ Remove</button>
+        <div class="step-header">
+          <div class="step-number">${idx + 1}</div>
+          <input type="text" class="step-title-input" value="${escapeHtml(step.title)}" placeholder="Step title..." onchange="updateStep('${step.id}', 'title', this.value)" />
+        </div>
+        <textarea placeholder="What happens in this step? (description)" onchange="updateStep('${step.id}', 'description', this.value)">${escapeHtml(step.description)}</textarea>
+        <textarea placeholder="Personal notes, tips, things to remember..." onchange="updateStep('${step.id}', 'notes', this.value)">${escapeHtml(step.notes)}</textarea>
+      `;
+      listEl.appendChild(card);
+    });
+  }
+
+  function addStep() {
+    steps.push({
+      id: 's' + Date.now().toString(36),
+      title: '',
+      description: '',
+      notes: ''
+    });
+    saveSteps();
+    renderSteps();
+  }
+
+  function updateStep(id, field, value) {
+    const step = steps.find(function (s) { return s.id === id; });
+    if (step) {
+      step[field] = value;
+      saveSteps();
+    }
+  }
+
+  function deleteStep(id) {
+    if (!confirm('Delete this step?')) return;
+    steps = steps.filter(function (s) { return s.id !== id; });
+    saveSteps();
+    renderSteps();
+  }
+
+  function resetToDefaults() {
+    if (!confirm('Reset all steps to defaults? This will erase your custom steps.')) return;
+    steps = JSON.parse(JSON.stringify(DEFAULT_STEPS));
+    saveSteps();
+    renderSteps();
+  }
+
+  loadSteps();
+  renderSteps();
+</script>
+
+</body>
+</html>
