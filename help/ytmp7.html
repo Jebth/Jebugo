@@ -1,187 +1,971 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="normal">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>High-Quality Media Converter</title>
-    <style>
-        /* Custom Color Palette Integration */
-        :root {
-            --bg-main: #FF960C;         /* Bright background orange */
-            --text-title: #FF7100;      /* Darker heading orange */
-            --text-light: #F7F7F7;      /* Universal clean white text */
-            --outline-dark: #2E1A00;    /* Deep structural contrast brown */
-            --card-bg: #3d2402;         /* Matte internal box container */
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ytmp7 · extractor</title>
+<script>
+  (function () {
+    try {
+      var savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    } catch (e) {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Minecraft Bold';
+    src: url('../webfiles/MinecraftBold-nMK1.otf') format('opentype');
+    font-display: swap;
+  }
 
-        body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            max-width: 650px; 
-            margin: 0 auto; 
-            padding: 40px 20px; 
-            color: var(--text-light); 
-            background-color: var(--bg-main);
-        }
+  @font-face {
+    font-family: 'Minecraft';
+    src: url('../webfiles/MinecraftRegular-Bmg3.otf') format('opentype');
+    font-display: swap;
+  }
 
-        .back-link {
-            display: inline-block;
-            color: var(--text-light);
-            text-decoration: none;
-            font-weight: bold;
-            margin-bottom: 25px;
-            padding: 6px 12px;
-            border: 2px solid var(--outline-dark);
-            border-radius: 6px;
-            background: rgba(0,0,0,0.15);
-            box-shadow: 2px 2px 0px var(--outline-dark);
-            transition: transform 0.1s;
-        }
-        .back-link:active { transform: scale(0.96); }
+  :root {
+    --bg: #FF960C;
+    --title: #FF7100;
+    --text: #F7F7F7;
+    --line: #2E1A00;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18);
+    --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
+  }
 
-        h2 { 
-            color: var(--text-title); 
-            font-size: 2.3rem;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 0px var(--outline-dark);
-        }
+  html[data-theme="dark"] {
+    --bg: #121212;
+    --title: #1e1e1e;
+    --text: #f0f0f0;
+    --line: #000000;
+    --shadow: 0 2px 10px rgba(255, 255, 255, 0.18);
+    --shadow-hover: 0 10px 28px rgba(255, 255, 255, 0.4);
+  }
 
-        .desc-text {
-            color: var(--text-light);
-            font-size: 1.1rem;
-            margin-top: 0;
-            margin-bottom: 30px;
-        }
+  html[data-theme="light"] {
+    --bg: #f5f5f5;
+    --title: #ffffff;
+    --text: #222222;
+    --line: #cfcfcf;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18);
+    --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
+  }
 
-        .tool-box {
-            background: var(--card-bg);
-            padding: 30px;
-            border: 3px solid var(--outline-dark);
-            border-radius: 8px;
-            box-shadow: 6px 6px 0px var(--outline-dark);
-        }
+  * { box-sizing: border-box; }
 
-        .input-group {
-            display: flex;
-            margin-bottom: 25px;
-        }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
 
-        input { 
-            width: 100%;
-            padding: 14px; 
-            font-size: 16px; 
-            border: 2px solid var(--outline-dark); 
-            border-radius: 6px; 
-            background-color: var(--text-light);
-            color: #222;
-            box-sizing: border-box;
-        }
-        input::placeholder { color: #666; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 72px 24px 48px;
+  }
 
-        .btn-wrapper {
-            display: flex;
-            gap: 15px;
-        }
+  /* ---------- custom scrollbar (same as index) ---------- */
+  html { scrollbar-width: thin; scrollbar-color: var(--line) var(--bg); }
+  ::-webkit-scrollbar { width: 12px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; border: 3px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--title); }
 
-        .action-btn { 
-            flex: 1;
-            padding: 14px; 
-            font-size: 16px; 
-            color: var(--text-light); 
-            border: 3px solid var(--outline-dark); 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            text-shadow: 1px 1px 0px var(--outline-dark);
-            box-shadow: 3px 3px 0px var(--outline-dark);
-            transition: all 0.1s;
-        }
-        .action-btn:active { 
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0px var(--outline-dark);
-        }
+  .back-nav {
+    width: 100%;
+    max-width: 760px;
+    margin-bottom: 40px;
+  }
 
-        .mp3 { background-color: #d9381e; }
-        .mp4 { background-color: #0066cc; }
+  header {
+    width: 100%;
+    max-width: 760px;
+    margin-bottom: 56px;
+  }
 
-        /* Render Zone for the Vevioz Gateway Frame */
-        .output-zone {
-            margin-top: 30px;
-            display: none; 
-            border-top: 2px dashed rgba(247,247,247,0.2);
-            padding-top: 25px;
-        }
+  h1 {
+    font-family: 'Minecraft Bold', 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+    color: var(--text);
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+  }
 
-        iframe {
-            width: 100%;
-            height: 120px;
-            border: 3px solid var(--outline-dark);
-            border-radius: 6px;
-            background: #ffffff;
-        }
+  header p {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.95rem;
+    max-width: 46ch;
+    line-height: 1.6;
+    opacity: 0.92;
+  }
 
-        .warning-tag {
-            font-size: 13px;
-            color: #e0d0cc;
-            margin-top: 10px;
-            text-align: center;
-        }
-    </style>
+  main {
+    width: 100%;
+    max-width: 760px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  /* ---------- folders (copied from index) ---------- */
+  .folder {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    overflow: visible;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .folder:hover,
+  .folder:focus-within { box-shadow: var(--shadow-hover); }
+
+  .folder-head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 18px 54px 18px 22px;
+    border-bottom: 1px solid var(--line);
+    background: var(--title);
+    border-radius: 5px 5px 0 0;
+  }
+
+  .title-group { display: flex; align-items: baseline; gap: 10px; }
+
+  .folder-head h2 {
+    font-family: 'Minecraft Bold', 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--text);
+    margin: 0;
+  }
+
+  .info { position: relative; outline: none; }
+
+  .info-trigger {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    color: var(--text);
+    cursor: help;
+    user-select: none;
+    opacity: 0.85;
+    transition: opacity 0.15s ease;
+  }
+
+  .info:hover .info-trigger,
+  .info:focus .info-trigger { opacity: 1; }
+
+  .folder-arrow {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.85;
+    transition: opacity 0.15s ease;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+  }
+
+  .folder-arrow:hover,
+  .folder-arrow:focus { opacity: 1; }
+
+  .tooltip {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 220px;
+    padding: 10px 12px;
+    background: var(--line);
+    color: var(--text);
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    border-radius: 10px;
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    z-index: 20;
+  }
+
+  .info:hover .tooltip,
+  .info:focus-within .tooltip {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .tree {
+    display: none;
+    padding: 14px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tree.open { display: flex; }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 18px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.92rem;
+    background: var(--title);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    transition: background 0.15s ease, padding-left 0.15s ease;
+  }
+
+  .row:hover {
+    background: #E06800;
+    padding-left: 22px;
+  }
+
+  button.row {
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    font-size: 0.92rem;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .row[hidden] { display: none; }
+
+  .row .glyph {
+    color: var(--line);
+    opacity: 0.85;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .row .name { flex: 1; min-width: 0; }
+
+  .row .go {
+    opacity: 0;
+    color: var(--line);
+    transition: opacity 0.15s ease;
+  }
+
+  .row:hover .go,
+  .row:focus-visible .go { opacity: 0.8; }
+
+  .disabled { opacity: 0.5; pointer-events: none; }
+
+  /* ---------- extractor ---------- */
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 2px 14px 2px 18px;
+    background: var(--title);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    transition: box-shadow 0.15s ease;
+  }
+
+  .input-row:focus-within { box-shadow: var(--shadow-hover); }
+
+  .input-row .glyph {
+    color: var(--line);
+    opacity: 0.85;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .input-row input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    font-size: 0.92rem;
+    color: var(--text);
+    padding: 11px 0;
+  }
+
+  .input-row input::placeholder { color: var(--text); opacity: 0.55; }
+
+  .fmt {
+    display: inline-block;
+    font-size: 0.62rem;
+    padding: 1px 7px;
+    margin-left: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    color: #fff;
+    vertical-align: 1px;
+    white-space: nowrap;
+  }
+
+  .fmt-mp3 { background: #d9381e; }
+  .fmt-mp4 { background: #0066cc; }
+
+  .output-zone {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 2px 2px;
+  }
+
+  .output-zone[hidden] { display: none; }
+
+  .status-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--line);
+    color: var(--text);
+    border-radius: 8px;
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #8a8a8a;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .status-dot.busy   { background: #ffd21e; animation: pulse 0.8s infinite alternate; }
+  .status-dot.ready  { background: #39d353; }
+  .status-dot.error  { background: #ff4d4d; }
+
+  @keyframes pulse { from { opacity: 0.35; } to { opacity: 1; } }
+
+  #engineFrame {
+    width: 100%;
+    height: 150px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .out-links { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+
+  .out-links a,
+  .out-links button {
+    color: var(--text);
+    opacity: 0.8;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-decoration: none;
+    border-bottom: 1px dotted currentColor;
+  }
+
+  .out-links a:hover,
+  .out-links button:hover { opacity: 1; }
+
+  .warning-tag {
+    margin: 0;
+    font-size: 0.68rem;
+    line-height: 1.5;
+    opacity: 0.7;
+  }
+
+  /* ---------- history (2 mini-cards per row, wrapping) ---------- */
+  .history-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .mini {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 8px 8px 10px;
+    background: var(--title);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    min-width: 0;
+  }
+
+  .mini:hover,
+  .mini:focus-visible {
+    background: #E06800;
+    outline: none;
+    box-shadow: var(--shadow-hover);
+  }
+
+  .mini-thumb {
+    width: 64px;
+    height: 36px;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    flex-shrink: 0;
+    background: #000;
+  }
+
+  .mini-body { min-width: 0; flex: 1; padding-right: 14px; }
+
+  .mini-title {
+    font-size: 0.78rem;
+    line-height: 1.35;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mini-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 3px;
+    font-size: 0.66rem;
+    opacity: 0.85;
+  }
+
+  .mini-meta .fmt { margin-left: 0; padding: 1px 6px; }
+
+  .mini-x {
+    position: absolute;
+    top: 3px;
+    right: 5px;
+    background: none;
+    border: none;
+    color: var(--text);
+    opacity: 0;
+    cursor: pointer;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1;
+    padding: 3px 4px;
+    transition: opacity 0.15s ease;
+  }
+
+  .mini:hover .mini-x,
+  .mini-x:focus { opacity: 0.85; }
+  .mini:hover .mini-x:hover { opacity: 1; }
+
+  .empty-row {
+    margin: 0;
+    padding: 4px 18px 6px;
+    font-size: 0.85rem;
+    opacity: 0.7;
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 48px 16px 40px; }
+    .back-nav { margin-bottom: 32px; }
+    header { margin-bottom: 40px; }
+    .mini-thumb { width: 52px; height: 30px; }
+    .mini-body { padding-right: 10px; }
+  }
+</style>
 </head>
 <body>
 
-    <!-- Target link path set up to route directly back out to your home base layout -->
-    <a href="index.html" class="back-link">← Back to Station Index</a>
+<nav class="back-nav">
+  <a class="row" href="../index.html">
+    <span class="glyph">└─</span>
+    <span class="name">.. back to directory</span>
+    <span class="go">❯❯❯❯</span>
+  </a>
+</nav>
 
-    <h2>HQ Media Extractor</h2>
-    <p class="desc-text">Convert and download YouTube links directly to clean 320kbps MP3 or HD MP4 output tracks.</p>
-    
-    <div class="tool-box">
-        <div class="input-group">
-            <input type="text" id="targetUrl" placeholder="Paste standard YouTube watch link here...">
-        </div>
-        
-        <div class="btn-wrapper">
-            <button class="action-btn mp3" onclick="processConversion('mp3')">🎵 Extract MP3 Audio</button>
-            <button class="action-btn mp4" onclick="processConversion('mp4')">📺 Extract MP4 Video</button>
-        </div>
+<header>
+  <h1>ytmp7</h1>
+  <p>Pull clean MP3 audio or HD MP4 video out of any YouTube link.<br>Everything you extract is logged below — locally, in this browser only.</p>
+</header>
 
-        <div class="output-zone" id="renderArea">
-            <h4 style="margin-top: 0; margin-bottom: 12px; color: var(--text-title); text-shadow: 1px 1px 0px var(--outline-dark);">Processing Gate Stream:</h4>
-            <iframe id="veviozEngine" src="" scrolling="no"></iframe>
-            <div class="warning-tag">Note: Clicking buttons inside the dashboard frame initiates the download securely via Vevioz cloud processing pipelines.</div>
+<main>
+
+  <section class="folder">
+    <div class="folder-head">
+      <div class="title-group">
+        <h2>extractor</h2>
+        <div class="info" tabindex="0">
+          <span class="info-trigger">/?</span>
+          <div class="tooltip">Pulls the 11-character video ID out of any watch / shorts / youtu.be link, then routes it through the first download gateway that answers. Gateways are third-party services.</div>
         </div>
+      </div>
+      <button class="folder-arrow" id="arrow-extractor" aria-label="Toggle extractor" onclick="toggleFolder('extractor')">▼</button>
     </div>
+    <nav class="tree open" id="tree-extractor">
 
-    <script>
-        // Clean regex execution to pull out the 11 character identifier string
-        function getYouTubeId(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match.length === 11) ? match : null;
+      <div class="input-row">
+        <span class="glyph">├─</span>
+        <input type="text" id="targetUrl" placeholder="paste a youtube link — watch?v= / youtu.be / shorts / music" spellcheck="false" autocomplete="off" autocapitalize="off">
+      </div>
+
+      <button class="row" id="btn-mp3" type="button">
+        <span class="glyph">├─</span>
+        <span class="name">extract audio <span class="fmt fmt-mp3">mp3 · 320kbps</span></span>
+        <span class="go">❯❯❯❯</span>
+      </button>
+
+      <button class="row" id="btn-mp4" type="button">
+        <span class="glyph">└─</span>
+        <span class="name">extract video <span class="fmt fmt-mp4">mp4 · hd</span></span>
+        <span class="go">❯❯❯❯</span>
+      </button>
+
+      <div class="output-zone" id="outputZone" hidden>
+        <div class="status-line" aria-live="polite">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">idle</span>
+        </div>
+        <iframe id="engineFrame" src="about:blank" scrolling="no" title="download gateway"></iframe>
+        <div class="out-links">
+          <a id="directLink" target="_blank" rel="noopener" hidden>open gateway in a new tab ❯</a>
+          <button id="cycleGateway" type="button" hidden>gateway looks dead? try the next one ❯</button>
+        </div>
+        <p class="warning-tag">Note: the frame belongs to a third-party service — the file download starts when you click the button inside it. If a gateway pops an ad tab, close it and use the frame's own button.</p>
+      </div>
+
+    </nav>
+  </section>
+
+  <section class="folder">
+    <div class="folder-head">
+      <div class="title-group">
+        <h2>history</h2>
+        <div class="info" tabindex="0">
+          <span class="info-trigger">/?</span>
+          <div class="tooltip">A local log of everything pulled through this page — saved in this browser's localStorage only. Cards fill two per row, then wrap. Click a card to extract it again.</div>
+        </div>
+      </div>
+      <button class="folder-arrow" id="arrow-history" aria-label="Toggle history" onclick="toggleFolder('history')">▼</button>
+    </div>
+    <nav class="tree open" id="tree-history">
+      <p class="empty-row" id="emptyRow">└─ nothing extracted yet — files you pull will stack up here, two per row.</p>
+      <div class="history-grid" id="historyGrid"></div>
+      <button class="row" id="clearBtn" type="button" hidden>
+        <span class="glyph">└─</span>
+        <span class="name">clear history</span>
+      </button>
+    </nav>
+  </section>
+
+</main>
+
+<script>
+  /* ---------- folder open/close (same system + storage key as the index) ---------- */
+  function applyFolderState(id, isOpen) {
+    var tree = document.getElementById('tree-' + id);
+    var arrow = document.getElementById('arrow-' + id);
+    if (!tree || !arrow) return;
+    if (isOpen) {
+      tree.classList.add('open');
+      arrow.textContent = '▼';
+    } else {
+      tree.classList.remove('open');
+      arrow.textContent = '▲';
+    }
+  }
+
+  function saveFolderState(id, isOpen) {
+    try {
+      var states = JSON.parse(localStorage.getItem('folderStates') || '{}');
+      states[id] = isOpen;
+      localStorage.setItem('folderStates', JSON.stringify(states));
+    } catch (e) {}
+  }
+
+  function toggleFolder(id) {
+    var tree = document.getElementById('tree-' + id);
+    var next = !tree.classList.contains('open');
+    applyFolderState(id, next);
+    saveFolderState(id, next);
+  }
+
+  (function () {
+    var defaultStates = { extractor: true, history: true };
+    var savedStates = {};
+    try { savedStates = JSON.parse(localStorage.getItem('folderStates') || '{}'); } catch (e) {}
+    Object.keys(defaultStates).forEach(function (id) {
+      var isOpen = Object.prototype.hasOwnProperty.call(savedStates, id) ? savedStates[id] : defaultStates[id];
+      applyFolderState(id, isOpen);
+    });
+  })();
+
+  /* ---------- tiny localStorage helper ---------- */
+  var store = {
+    get: function (key) {
+      try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+    },
+    set: function (key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+    }
+  };
+
+  /* ---------- youtube id extraction ----------
+     The old version tested match.length === 11, which is NEVER true for that
+     regex (the array only has 3 slots), so it returned null for every link and
+     the page refused everything. This one actually pulls the 11-char ID out. */
+  function getYouTubeId(raw) {
+    if (!raw) return null;
+    var url = raw.trim();
+    if (/^[A-Za-z0-9_-]{11}$/.test(url)) return url; // bare ID pasted
+    var m = url.match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/|\/v\/)([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+
+  /* ---------- gateway chain ----------
+     vevioz is the original button API, but it's unreliable, so we probe each
+     gateway and use the first one that actually answers. All three run the same
+     button API. Add/swap entries here if you find better ones later. */
+  var PROVIDERS = {
+    mp3: [
+      'https://api.vevioz.com/api/button/mp3/',
+      'https://api.yt-download.org/api/button/mp3/',
+      'https://api.downloaderto.com/api/button/mp3/'
+    ],
+    mp4: [
+      'https://api.vevioz.com/api/button/videos/',
+      'https://api.yt-download.org/api/button/videos/',
+      'https://api.downloaderto.com/api/button/videos/'
+    ]
+  };
+
+  var PROBE_TIMEOUT = 4000;
+  var GATEWAY_KEY = 'ytmp7Gateway';
+
+  function hostOf(url) {
+    try { return new URL(url).hostname.replace(/^api\./, ''); } catch (e) { return url; }
+  }
+
+  /* no-cors fetch: rejects on dead DNS / dropped connections, resolves the
+     moment the server answers at all — a cheap cross-origin liveness check. */
+  function probe(url) {
+    return new Promise(function (resolve) {
+      var settled = false;
+      function finish(ok) {
+        if (!settled) { settled = true; clearTimeout(timer); resolve(ok); }
+      }
+      var timer = setTimeout(function () { finish(false); }, PROBE_TIMEOUT);
+      try {
+        fetch(url, { mode: 'no-cors', cache: 'no-store' })
+          .then(function () { finish(true); })
+          .catch(function () { finish(false); });
+      } catch (e) { finish(false); }
+    });
+  }
+
+  function orderedProviders(format) {
+    var list = PROVIDERS[format].slice();
+    var remembered = store.get(GATEWAY_KEY);
+    if (remembered) {
+      for (var i = 1; i < list.length; i++) {
+        if (hostOf(list[i]) === remembered) {
+          list.unshift(list.splice(i, 1)[0]);
+          break;
         }
+      }
+    }
+    return list;
+  }
 
-        function processConversion(format) {
-            const rawUrl = document.getElementById('targetUrl').value.trim();
-            const videoId = getYouTubeId(rawUrl);
-            
-            if (!videoId) {
-                alert('Please provide a functional, complete YouTube link.');
-                return;
-            }
+  /* ---------- dom handles ---------- */
+  var input = document.getElementById('targetUrl');
+  var btnMp3 = document.getElementById('btn-mp3');
+  var btnMp4 = document.getElementById('btn-mp4');
+  var outputZone = document.getElementById('outputZone');
+  var statusDot = document.getElementById('statusDot');
+  var statusText = document.getElementById('statusText');
+  var engineFrame = document.getElementById('engineFrame');
+  var directLink = document.getElementById('directLink');
+  var cycleBtn = document.getElementById('cycleGateway');
+  var historyGrid = document.getElementById('historyGrid');
+  var emptyRow = document.getElementById('emptyRow');
+  var clearBtn = document.getElementById('clearBtn');
 
-            const frameBox = document.getElementById('renderArea');
-            const targetIframe = document.getElementById('veviozEngine');
+  var lastFormat = 'mp3';
+  var busy = false;
+  var currentList = [];
+  var currentIdx = 0;
+  var currentId = null;
+  var currentFormat = null;
 
-            // Apply direct server endpoints based on your requested layout format selection
-            if (format === 'mp3') {
-                targetIframe.src = 'https://api.vevioz.com/api/button/mp3/' + videoId;
-            } else if (format === 'mp4') {
-                targetIframe.src = 'https://api.vevioz.com/api/button/videos/' + videoId;
-            }
+  function setStatus(state, text) {
+    statusDot.className = 'status-dot ' + state;
+    statusText.textContent = text;
+  }
 
-            // Expose layout element visually inside view matrix
-            frameBox.style.display = 'block';
-        }
-    </script>
+  function setBusy(on) {
+    busy = on;
+    btnMp3.classList.toggle('disabled', on);
+    btnMp4.classList.toggle('disabled', on);
+    cycleBtn.classList.toggle('disabled', on);
+  }
+
+  async function runExtraction(id, format, list, startIndex, logHistory) {
+    currentId = id;
+    currentFormat = format;
+    currentList = list;
+    currentIdx = startIndex;
+
+    outputZone.hidden = false;
+    engineFrame.hidden = true;
+    directLink.hidden = true;
+    cycleBtn.hidden = false;
+
+    for (var i = startIndex; i < list.length; i++) {
+      setStatus('busy', 'linking to ' + hostOf(list[i]) + ' …');
+      var alive = await probe(list[i] + id);
+      if (alive) {
+        currentIdx = i;
+        store.set(GATEWAY_KEY, hostOf(list[i]));
+        engineFrame.hidden = false;
+        engineFrame.src = list[i] + id;
+        directLink.href = list[i] + id;
+        directLink.hidden = false;
+        setStatus('ready', 'gateway: ' + hostOf(list[i]) + ' — hit the button inside the frame to start the ' + format.toUpperCase() + ' download.');
+        if (logHistory) addHistory(id, format);
+        return;
+      }
+    }
+
+    engineFrame.src = 'about:blank';
+    setStatus('error', 'every gateway is unreachable right now — the converter services look down. hit "try the next one" in a moment, or come back later.');
+  }
+
+  async function processConversion(format) {
+    if (busy) return;
+    lastFormat = format;
+
+    var id = getYouTubeId(input.value);
+    outputZone.hidden = false;
+    directLink.hidden = true;
+
+    if (!id) {
+      engineFrame.hidden = true;
+      engineFrame.src = 'about:blank';
+      cycleBtn.hidden = true;
+      setStatus('error', 'that is not a youtube link I can read — paste a full watch?v=, shorts, youtu.be or music.youtube url (a bare 11-character id also works).');
+      return;
+    }
+
+    setBusy(true);
+    await runExtraction(id, format, orderedProviders(format), 0, true);
+    setBusy(false);
+  }
+
+  btnMp3.addEventListener('click', function () { processConversion('mp3'); });
+  btnMp4.addEventListener('click', function () { processConversion('mp4'); });
+
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); processConversion(lastFormat); }
+  });
+
+  cycleBtn.addEventListener('click', function () {
+    if (busy || !currentId || !currentList.length) return;
+    var next = currentIdx + 1;
+    if (next >= currentList.length) next = 0;
+    setBusy(true);
+    runExtraction(currentId, currentFormat, currentList, next, false).then(function () { setBusy(false); });
+  });
+
+  /* ---------- local download history ---------- */
+  var HISTORY_KEY = 'ytmp7History';
+  var HISTORY_LIMIT = 48;
+
+  function loadHistory() {
+    var list = store.get(HISTORY_KEY);
+    return Array.isArray(list) ? list : [];
+  }
+
+  function saveHistoryList(list) { store.set(HISTORY_KEY, list); }
+
+  function addHistory(id, format) {
+    var list = loadHistory();
+    list.push({
+      k: Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7),
+      id: id,
+      format: format,
+      title: null,
+      ts: Date.now()
+    });
+    if (list.length > HISTORY_LIMIT) list = list.slice(-HISTORY_LIMIT);
+    saveHistoryList(list);
+    renderHistory();
+    fetchTitle(id);
+  }
+
+  function removeHistory(key) {
+    saveHistoryList(loadHistory().filter(function (e) { return e.k !== key; }));
+    renderHistory();
+  }
+
+  function relTime(ts) {
+    var s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 60) return 'just now';
+    var m = Math.floor(s / 60); if (m < 60) return m + 'm ago';
+    var h = Math.floor(m / 60); if (h < 24) return h + 'h ago';
+    var d = Math.floor(h / 24); if (d < 7) return d + 'd ago';
+    return new Date(ts).toLocaleDateString();
+  }
+
+  function buildMiniCard(entry) {
+    var card = document.createElement('div');
+    card.className = 'mini';
+    card.setAttribute('role', 'button');
+    card.tabIndex = 0;
+    card.title = (entry.title || entry.id) + ' · click to extract again';
+
+    var thumb = document.createElement('img');
+    thumb.className = 'mini-thumb';
+    thumb.src = 'https://i.ytimg.com/vi/' + entry.id + '/mqdefault.jpg';
+    thumb.alt = '';
+    thumb.loading = 'lazy';
+    thumb.onerror = function () { thumb.style.visibility = 'hidden'; };
+
+    var body = document.createElement('div');
+    body.className = 'mini-body';
+
+    var title = document.createElement('div');
+    title.className = 'mini-title';
+    title.textContent = entry.title || (entry.id + ' — fetching title…');
+
+    var meta = document.createElement('div');
+    meta.className = 'mini-meta';
+    var fmt = document.createElement('span');
+    fmt.className = 'fmt fmt-' + entry.format;
+    fmt.textContent = entry.format;
+    var when = document.createElement('span');
+    when.textContent = relTime(entry.ts);
+    meta.appendChild(fmt);
+    meta.appendChild(when);
+
+    body.appendChild(title);
+    body.appendChild(meta);
+
+    var x = document.createElement('button');
+    x.className = 'mini-x';
+    x.type = 'button';
+    x.setAttribute('aria-label', 'remove this entry');
+    x.textContent = '×';
+    x.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      removeHistory(entry.k);
+    });
+
+    function rerun() {
+      input.value = 'https://www.youtube.com/watch?v=' + entry.id;
+      processConversion(entry.format);
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+    }
+
+    card.addEventListener('click', rerun);
+    card.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); rerun(); }
+    });
+
+    card.appendChild(thumb);
+    card.appendChild(body);
+    card.appendChild(x);
+    return card;
+  }
+
+  function renderHistory() {
+    var list = loadHistory();
+    historyGrid.textContent = '';
+    emptyRow.hidden = list.length > 0;
+    clearBtn.hidden = list.length === 0;
+    list.forEach(function (entry) {
+      historyGrid.appendChild(buildMiniCard(entry));
+    });
+  }
+
+  /* video titles via youtube's oembed endpoint (CORS-friendly), noembed as backup */
+  var titleRequested = {};
+
+  function applyTitle(id, title) {
+    if (!title) return;
+    var list = loadHistory();
+    var changed = false;
+    list.forEach(function (e) {
+      if (e.id === id && !e.title) { e.title = title; changed = true; }
+    });
+    if (changed) { saveHistoryList(list); renderHistory(); }
+  }
+
+  function fetchTitle(id) {
+    if (titleRequested[id]) return;
+    titleRequested[id] = true;
+    var watch = 'https://www.youtube.com/watch?v=' + id;
+
+    fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent(watch))
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('oembed ' + r.status)); })
+      .then(function (d) {
+        if (d && d.title) applyTitle(id, d.title);
+        else return Promise.reject(new Error('no title'));
+      })
+      .catch(function () {
+        fetch('https://noembed.com/embed?url=' + encodeURIComponent(watch))
+          .then(function (r) { return r.json(); })
+          .then(function (d) { applyTitle(id, (d && d.title && !d.error) ? d.title : 'untitled · ' + id); })
+          .catch(function () { applyTitle(id, 'untitled · ' + id); });
+      });
+  }
+
+  /* clear needs a confirming second click — no alert() popups here */
+  var clearArmed = false;
+  var clearTimer = null;
+
+  clearBtn.addEventListener('click', function () {
+    var nameSpan = clearBtn.querySelector('.name');
+    if (!clearArmed) {
+      clearArmed = true;
+      nameSpan.textContent = 'really wipe it? click again';
+      clearTimer = setTimeout(function () {
+        clearArmed = false;
+        nameSpan.textContent = 'clear history';
+      }, 2500);
+      return;
+    }
+    clearTimeout(clearTimer);
+    clearArmed = false;
+    nameSpan.textContent = 'clear history';
+    saveHistoryList([]);
+    renderHistory();
+  });
+
+  /* boot: draw saved history + top up any missing titles */
+  renderHistory();
+  loadHistory().forEach(function (e) { if (!e.title) fetchTitle(e.id); });
+
+  /* keep the "x ago" labels fresh */
+  setInterval(renderHistory, 60000);
+</script>
+
 </body>
 </html>
