@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Directory</title>
+<script>
+  (function () {
+    try {
+      var savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    } catch (e) {}
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -27,9 +37,6 @@
     --line: #2E1A00;
     --shadow: 0 2px 10px rgba(46, 26, 0, 0.18);
     --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
-    --scrollbar-track: #FF7100;
-    --scrollbar-thumb: #2E1A00;
-    --scrollbar-thumb-hover: #E06800;
   }
 
   html[data-theme="dark"] {
@@ -37,11 +44,8 @@
     --title: #1e1e1e;
     --text: #f0f0f0;
     --line: #000000;
-    --shadow: 0 2px 10px rgba(255, 255, 255, 0.15);
-    --shadow-hover: 0 10px 28px rgba(255, 255, 255, 0.35);
-    --scrollbar-track: #1e1e1e;
-    --scrollbar-thumb: #555555;
-    --scrollbar-thumb-hover: #7a7a7a;
+    --shadow: 0 2px 10px rgba(255, 255, 255, 0.18);
+    --shadow-hover: 0 10px 28px rgba(255, 255, 255, 0.4);
   }
 
   html[data-theme="light"] {
@@ -49,11 +53,8 @@
     --title: #ffffff;
     --text: #222222;
     --line: #cfcfcf;
-    --shadow: 0 2px 10px rgba(46, 26, 0, 0.1);
-    --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.22);
-    --scrollbar-track: #eaeaea;
-    --scrollbar-thumb: #b8b8b8;
-    --scrollbar-thumb-hover: #999999;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18);
+    --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
   }
 
   * { box-sizing: border-box; }
@@ -67,31 +68,6 @@
     transition: background 0.2s ease, color 0.2s ease;
   }
 
-  /* ---------- custom scrollbar ---------- */
-  html {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-  }
-
-  ::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb);
-    border-radius: 4px;
-    border: 2px solid var(--scrollbar-track);
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--scrollbar-thumb-hover);
-  }
-
   body {
     min-height: 100vh;
     display: flex;
@@ -100,13 +76,37 @@
     padding: 72px 24px 48px;
   }
 
+  /* ---------- custom scrollbar ---------- */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) var(--bg);
+  }
+
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 8px;
+    border: 3px solid var(--bg);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--title);
+  }
+
   /* ---------- hamburger menu button ---------- */
   .menu-toggle {
     position: fixed;
-    top: 44px;
-    right: 26px;
-    width: 52px;
-    height: 52px;
+    top: 64px;
+    right: 30px;
+    width: 56px;
+    height: 56px;
     padding: 6px;
     background: transparent;
     border: none;
@@ -162,7 +162,7 @@
     color: #2E1A00;
     background: rgba(255, 255, 255, 0.35);
     border: 1px solid #555555;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     transition: background 0.15s ease;
   }
@@ -222,7 +222,7 @@
   .folder {
     position: relative;
     border: 1px solid var(--line);
-    border-radius: 4px;
+    border-radius: 5px;
     overflow: visible;
     box-shadow: var(--shadow);
     transition: box-shadow 0.2s ease, transform 0.2s ease;
@@ -240,7 +240,7 @@
     padding: 18px 54px 18px 22px;
     border-bottom: 1px solid var(--line);
     background: var(--title);
-    border-radius: 4px 4px 0 0;
+    border-radius: 5px 5px 0 0;
   }
 
   .title-group {
@@ -311,7 +311,7 @@
     font-family: 'Minecraft', 'IBM Plex Mono', monospace;
     font-size: 0.72rem;
     line-height: 1.5;
-    border-radius: 4px;
+    border-radius: 10px;
     opacity: 0;
     transform: translateY(-4px);
     pointer-events: none;
@@ -347,7 +347,7 @@
     font-size: 0.92rem;
     background: var(--title);
     border: 1px solid var(--line);
-    border-radius: 4px;
+    border-radius: 10px;
     transition: background 0.15s ease, padding-left 0.15s ease;
   }
 
@@ -509,18 +509,45 @@
 </main>
 
 <script>
-  function toggleFolder(id) {
+  function applyFolderState(id, isOpen) {
     var tree = document.getElementById('tree-' + id);
     var arrow = document.getElementById('arrow-' + id);
-    var isOpen = tree.classList.contains('open');
+    if (!tree || !arrow) return;
     if (isOpen) {
-      tree.classList.remove('open');
-      arrow.textContent = '▲';
-    } else {
       tree.classList.add('open');
       arrow.textContent = '▼';
+    } else {
+      tree.classList.remove('open');
+      arrow.textContent = '▲';
     }
   }
+
+  function saveFolderState(id, isOpen) {
+    try {
+      var states = JSON.parse(localStorage.getItem('folderStates') || '{}');
+      states[id] = isOpen;
+      localStorage.setItem('folderStates', JSON.stringify(states));
+    } catch (e) {}
+  }
+
+  function toggleFolder(id) {
+    var tree = document.getElementById('tree-' + id);
+    var isOpen = tree.classList.contains('open');
+    var next = !isOpen;
+    applyFolderState(id, next);
+    saveFolderState(id, next);
+  }
+
+  // restore folder open/closed states (defaults: guidelines open, help + inventory closed)
+  (function () {
+    var defaultStates = { guidelines: true, help: false, inventory: false };
+    var savedStates = {};
+    try { savedStates = JSON.parse(localStorage.getItem('folderStates') || '{}'); } catch (e) {}
+    Object.keys(defaultStates).forEach(function (id) {
+      var isOpen = Object.prototype.hasOwnProperty.call(savedStates, id) ? savedStates[id] : defaultStates[id];
+      applyFolderState(id, isOpen);
+    });
+  })();
 
   var menuToggle = document.getElementById('menuToggle');
   var sideMenu = document.getElementById('sideMenu');
@@ -531,22 +558,20 @@
 
   var themeButtons = document.querySelectorAll('.theme-btn');
 
-  function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
+  function setActiveThemeButton(theme) {
     themeButtons.forEach(function (b) {
       b.classList.toggle('active', b.getAttribute('data-theme') === theme);
     });
   }
 
-  // Restore saved theme on load (falls back to "normal" if none saved)
-  var savedTheme = localStorage.getItem('siteTheme') || 'normal';
-  applyTheme(savedTheme);
+  setActiveThemeButton(document.documentElement.getAttribute('data-theme') || 'normal');
 
   themeButtons.forEach(function (btn) {
     btn.addEventListener('click', function () {
       var theme = btn.getAttribute('data-theme');
-      applyTheme(theme);
-      localStorage.setItem('siteTheme', theme);
+      document.documentElement.setAttribute('data-theme', theme);
+      try { localStorage.setItem('theme', theme); } catch (e) {}
+      setActiveThemeButton(theme);
     });
   });
 </script>
