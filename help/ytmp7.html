@@ -59,6 +59,8 @@
 
   * { box-sizing: border-box; }
 
+  [hidden] { display: none !important; }
+
   html, body {
     margin: 0;
     padding: 0;
@@ -121,7 +123,7 @@
     gap: 40px;
   }
 
-  /* ---------- folders (copied from index) ---------- */
+  /* ---------- folders (same system as index) ---------- */
   .folder {
     position: relative;
     border: 1px solid var(--line);
@@ -253,8 +255,6 @@
     cursor: pointer;
   }
 
-  .row[hidden] { display: none; }
-
   .row .glyph {
     color: var(--line);
     opacity: 0.85;
@@ -325,14 +325,42 @@
   .fmt-mp3 { background: #d9381e; }
   .fmt-mp4 { background: #0066cc; }
 
+  /* ---------- preview player ---------- */
+  .preview-wrap { padding: 0 4px; }
+
+  .preview-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: var(--shadow);
+  }
+
+  .preview-frame iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .preview-cap {
+    margin: 4px 2px 0;
+    font-size: 0.68rem;
+    opacity: 0.7;
+  }
+
+  /* ---------- engine output ---------- */
   .output-zone {
     display: flex;
     flex-direction: column;
     gap: 10px;
     padding: 4px 2px 2px;
   }
-
-  .output-zone[hidden] { display: none; }
 
   .status-line {
     display: flex;
@@ -455,6 +483,21 @@
 
   .mini-meta .fmt { margin-left: 0; padding: 1px 6px; }
 
+  .mini-play {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text);
+    opacity: 0.65;
+    cursor: pointer;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    line-height: 1;
+  }
+
+  .mini-play:hover,
+  .mini-play:focus { opacity: 1; }
+
   .mini-x {
     position: absolute;
     top: 3px;
@@ -503,7 +546,7 @@
 
 <header>
   <h1>ytmp7</h1>
-  <p>Pull clean MP3 audio or HD MP4 video out of any YouTube link.<br>Everything you extract is logged below — locally, in this browser only.</p>
+  <p>Pull clean MP3 audio or HD MP4 video out of any YouTube link — preview it right here first. Everything you extract is logged below, locally in this browser only.</p>
 </header>
 
 <main>
@@ -514,7 +557,7 @@
         <h2>extractor</h2>
         <div class="info" tabindex="0">
           <span class="info-trigger">/?</span>
-          <div class="tooltip">Pulls the 11-character video ID out of any watch / shorts / youtu.be link, then routes it through the first download gateway that answers. Gateways are third-party services.</div>
+          <div class="tooltip">Pulls the 11-character ID out of any watch / shorts / youtu.be link, previews it, then routes it through a chain of resolver engines — open cobalt instances first (they return direct file links), vevioz-style widgets as fallback. Failed engines are skipped automatically; use “next engine” to skip one by hand.</div>
         </div>
       </div>
       <button class="folder-arrow" id="arrow-extractor" aria-label="Toggle extractor" onclick="toggleFolder('extractor')">▼</button>
@@ -524,6 +567,13 @@
       <div class="input-row">
         <span class="glyph">├─</span>
         <input type="text" id="targetUrl" placeholder="paste a youtube link — watch?v= / youtu.be / shorts / music" spellcheck="false" autocomplete="off" autocapitalize="off">
+      </div>
+
+      <div class="preview-wrap" id="previewWrap" hidden>
+        <div class="preview-frame">
+          <iframe id="previewFrame" src="about:blank" title="preview player" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <p class="preview-cap">└─ preview — straight off youtube, sound + video</p>
       </div>
 
       <button class="row" id="btn-mp3" type="button">
@@ -543,12 +593,21 @@
           <span class="status-dot" id="statusDot"></span>
           <span id="statusText">idle</span>
         </div>
-        <iframe id="engineFrame" src="about:blank" scrolling="no" title="download gateway"></iframe>
+
+        <a class="row" id="directRow" target="_blank" rel="noopener" hidden>
+          <span class="glyph">├─</span>
+          <span class="name">download file <span class="fmt" id="directFmt">mp3</span></span>
+          <span class="go">❯❯❯❯</span>
+        </a>
+
+        <iframe id="engineFrame" src="about:blank" scrolling="no" title="download gateway" hidden></iframe>
+
         <div class="out-links">
-          <a id="directLink" target="_blank" rel="noopener" hidden>open gateway in a new tab ❯</a>
-          <button id="cycleGateway" type="button" hidden>gateway looks dead? try the next one ❯</button>
+          <a id="openTab" target="_blank" rel="noopener" hidden>open the engine page in a new tab ❯</a>
+          <button id="cycleGateway" type="button" hidden>engine looks dead? try the next one ❯</button>
         </div>
-        <p class="warning-tag">Note: the frame belongs to a third-party service — the file download starts when you click the button inside it. If a gateway pops an ad tab, close it and use the frame's own button.</p>
+
+        <p class="warning-tag">resolvers are third-party services — nothing passes through this page. direct links expire after a while, so download promptly. frame widgets can’t be verified from here; if one shows an error page, cycle engines.</p>
       </div>
 
     </nav>
@@ -560,7 +619,7 @@
         <h2>history</h2>
         <div class="info" tabindex="0">
           <span class="info-trigger">/?</span>
-          <div class="tooltip">A local log of everything pulled through this page — saved in this browser's localStorage only. Cards fill two per row, then wrap. Click a card to extract it again.</div>
+          <div class="tooltip">A local log of everything pulled through this page — localStorage only, never uploaded. Cards fill two per row, then wrap. Click a card to extract it again, ▶ to preview it, × to remove.</div>
         </div>
       </div>
       <button class="folder-arrow" id="arrow-history" aria-label="Toggle history" onclick="toggleFolder('history')">▼</button>
@@ -627,68 +686,46 @@
     }
   };
 
-  /* ---------- youtube id extraction ----------
-     The old version tested match.length === 11, which is NEVER true for that
-     regex (the array only has 3 slots), so it returned null for every link and
-     the page refused everything. This one actually pulls the 11-char ID out. */
+  /* ---------- youtube id extraction ---------- */
   function getYouTubeId(raw) {
     if (!raw) return null;
     var url = raw.trim();
-    if (/^[A-Za-z0-9_-]{11}$/.test(url)) return url; // bare ID pasted
+    if (/^[A-Za-z0-9_-]{11}$/.test(url)) return url;
     var m = url.match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/|\/v\/)([A-Za-z0-9_-]{11})/);
     return m ? m[1] : null;
   }
 
-  /* ---------- gateway chain ----------
-     vevioz is the original button API, but it's unreliable, so we probe each
-     gateway and use the first one that actually answers. All three run the same
-     button API. Add/swap entries here if you find better ones later. */
-  var PROVIDERS = {
-    mp3: [
-      'https://api.vevioz.com/api/button/mp3/',
-      'https://api.yt-download.org/api/button/mp3/',
-      'https://api.downloaderto.com/api/button/mp3/'
-    ],
-    mp4: [
-      'https://api.vevioz.com/api/button/videos/',
-      'https://api.yt-download.org/api/button/videos/',
-      'https://api.downloaderto.com/api/button/videos/'
-    ]
-  };
+  /* ---------- resolver engines ----------
+     order matters. json engines speak the cobalt API (CORS enabled, real status
+     codes, direct file links). frame engines are the vevioz-style widget family —
+     cross-origin and status-blind, so they're last-resort. add/remove one line
+     each as services come and go. official api.cobalt.tools is deliberately NOT
+     here — it requires an api key now (401 for everyone else). */
+  var ENGINES = [
+    { name: 'cobalt·kwiatekmiki', type: 'json',  endpoint: 'https://cobalt-api.kwiatekmiki.com/' },
+    { name: 'cobalt·canine',      type: 'json',  endpoint: 'https://cobalt.canine.tools/' },
+    { name: 'vevioz·widget',      type: 'frame', tpl: 'https://api.vevioz.com/api/widget/{f}/{id}' },
+    { name: 'vevioz·button',      type: 'frame', tpl: 'https://api.vevioz.com/api/button/{f}/{id}' },
+    { name: 'yt-download',        type: 'frame', tpl: 'https://api.yt-download.org/api/button/{f}/{id}' },
+    { name: 'downloaderto',       type: 'frame', tpl: 'https://api.downloaderto.com/api/button/{f}/{id}' }
+  ];
 
-  var PROBE_TIMEOUT = 4000;
-  var GATEWAY_KEY = 'ytmp7Gateway';
+  var ENGINE_KEY = 'ytmp7Engine';
 
-  function hostOf(url) {
-    try { return new URL(url).hostname.replace(/^api\./, ''); } catch (e) { return url; }
+  function frameUrl(eng, id, fmt) {
+    return eng.tpl.replace('{f}', fmt === 'mp3' ? 'mp3' : 'videos').replace('{id}', id);
   }
 
-  /* no-cors fetch: rejects on dead DNS / dropped connections, resolves the
-     moment the server answers at all — a cheap cross-origin liveness check. */
-  function probe(url) {
-    return new Promise(function (resolve) {
-      var settled = false;
-      function finish(ok) {
-        if (!settled) { settled = true; clearTimeout(timer); resolve(ok); }
-      }
-      var timer = setTimeout(function () { finish(false); }, PROBE_TIMEOUT);
-      try {
-        fetch(url, { mode: 'no-cors', cache: 'no-store' })
-          .then(function () { finish(true); })
-          .catch(function () { finish(false); });
-      } catch (e) { finish(false); }
-    });
+  function originOf(u) {
+    try { return new URL(u).origin; } catch (e) { return u; }
   }
 
-  function orderedProviders(format) {
-    var list = PROVIDERS[format].slice();
-    var remembered = store.get(GATEWAY_KEY);
-    if (remembered) {
+  function orderedEngines() {
+    var list = ENGINES.slice();
+    var last = store.get(ENGINE_KEY);
+    if (last) {
       for (var i = 1; i < list.length; i++) {
-        if (hostOf(list[i]) === remembered) {
-          list.unshift(list.splice(i, 1)[0]);
-          break;
-        }
+        if (list[i].name === last) { list.unshift(list.splice(i, 1)[0]); break; }
       }
     }
     return list;
@@ -701,19 +738,21 @@
   var outputZone = document.getElementById('outputZone');
   var statusDot = document.getElementById('statusDot');
   var statusText = document.getElementById('statusText');
+  var directRow = document.getElementById('directRow');
+  var directFmt = document.getElementById('directFmt');
   var engineFrame = document.getElementById('engineFrame');
-  var directLink = document.getElementById('directLink');
+  var openTab = document.getElementById('openTab');
   var cycleBtn = document.getElementById('cycleGateway');
+  var previewWrap = document.getElementById('previewWrap');
+  var previewFrame = document.getElementById('previewFrame');
   var historyGrid = document.getElementById('historyGrid');
   var emptyRow = document.getElementById('emptyRow');
   var clearBtn = document.getElementById('clearBtn');
 
   var lastFormat = 'mp3';
   var busy = false;
-  var currentList = [];
-  var currentIdx = 0;
-  var currentId = null;
-  var currentFormat = null;
+  var cur = { id: null, fmt: null, list: [], pos: -1 };
+  var previewId = null;
 
   function setStatus(state, text) {
     statusDot.className = 'status-dot ' + state;
@@ -727,55 +766,172 @@
     cycleBtn.classList.toggle('disabled', on);
   }
 
-  async function runExtraction(id, format, list, startIndex, logHistory) {
-    currentId = id;
-    currentFormat = format;
-    currentList = list;
-    currentIdx = startIndex;
+  /* ---------- preview player (official youtube embed → sound + video) ---------- */
+  function updatePreview(id) {
+    if (id) {
+      if (id !== previewId) {
+        previewId = id;
+        previewFrame.src = 'https://www.youtube-nocookie.com/embed/' + id + '?rel=0';
+      }
+      previewWrap.hidden = false;
+    } else if (!input.value.trim()) {
+      previewId = null;
+      previewWrap.hidden = true;
+      previewFrame.src = 'about:blank';
+    }
+  }
 
+  input.addEventListener('input', function () {
+    updatePreview(getYouTubeId(input.value));
+  });
+
+  /* ---------- engine: cobalt-style JSON api ---------- */
+  async function tryCobalt(endpoint, id, fmt) {
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 15000) : null;
+
+    /* body carries both v10 and legacy keys — unknown fields are ignored, so it
+       works on either generation of the api */
+    var body = {
+      url: 'https://www.youtube.com/watch?v=' + id,
+      downloadMode: fmt === 'mp3' ? 'audio' : 'auto',
+      audioFormat: 'mp3',
+      aFormat: 'mp3',
+      videoQuality: '1080',
+      vQuality: '1080',
+      filenameStyle: 'basic'
+    };
+
+    try {
+      var r = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: ctrl ? ctrl.signal : undefined
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      var d = await r.json();
+
+      if (d && d.url && (d.status === 'tunnel' || d.status === 'redirect' || d.status === 'stream')) {
+        return d.url;
+      }
+      if (d && d.status === 'picker' && d.picker && d.picker.length) {
+        var want = fmt === 'mp3' ? 'audio' : 'video';
+        for (var i = 0; i < d.picker.length; i++) {
+          if (d.picker[i].type === want) return d.picker[i].url;
+        }
+        return d.picker[0].url;
+      }
+      throw new Error((d && d.error && d.error.code) ? d.error.code : 'refused');
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  /* ---------- engine: frame probe (dns-level only — statuses are invisible) ---------- */
+  function probe(url) {
+    return new Promise(function (resolve) {
+      var settled = false;
+      function finish(ok) {
+        if (!settled) { settled = true; clearTimeout(timer); resolve(ok); }
+      }
+      var timer = setTimeout(function () { finish(false); }, 4000);
+      try {
+        fetch(url, { mode: 'no-cors', cache: 'no-store' })
+          .then(function () { finish(true); })
+          .catch(function () { finish(false); });
+      } catch (e) { finish(false); }
+    });
+  }
+
+  function errNote(e) {
+    if (e && e.name === 'AbortError') return 'timeout';
+    var m = (e && e.message) || '';
+    if (m.indexOf('HTTP') === 0) return 'http ' + m.slice(5);
+    if (m === 'Failed to fetch') return 'unreachable';
+    return m || 'unreachable';
+  }
+
+  /* ---------- the resolver chain ---------- */
+  async function runResolve(id, fmt, skipName, logOnServe) {
+    cur = { id: id, fmt: fmt, list: orderedEngines(), pos: -1 };
     outputZone.hidden = false;
+    directRow.hidden = true;
     engineFrame.hidden = true;
-    directLink.hidden = true;
+    engineFrame.src = 'about:blank';
+    openTab.hidden = true;
     cycleBtn.hidden = false;
 
-    for (var i = startIndex; i < list.length; i++) {
-      setStatus('busy', 'linking to ' + hostOf(list[i]) + ' …');
-      var alive = await probe(list[i] + id);
-      if (alive) {
-        currentIdx = i;
-        store.set(GATEWAY_KEY, hostOf(list[i]));
-        engineFrame.hidden = false;
-        engineFrame.src = list[i] + id;
-        directLink.href = list[i] + id;
-        directLink.hidden = false;
-        setStatus('ready', 'gateway: ' + hostOf(list[i]) + ' — hit the button inside the frame to start the ' + format.toUpperCase() + ' download.');
-        if (logHistory) addHistory(id, format);
-        return;
+    var start = 0;
+    if (skipName) {
+      for (var s = 0; s < cur.list.length; s++) {
+        if (cur.list[s].name === skipName) { start = (s + 1) % cur.list.length; break; }
+      }
+    }
+
+    var notes = [];
+    for (var k = 0; k < cur.list.length; k++) {
+      var pos = (start + k) % cur.list.length;
+      var eng = cur.list[pos];
+      cur.pos = pos;
+
+      if (eng.type === 'json') {
+        setStatus('busy', 'asking ' + eng.name + ' for a direct ' + fmt.toUpperCase() + ' file…');
+        try {
+          var fileUrl = await tryCobalt(eng.endpoint, id, fmt);
+          store.set(ENGINE_KEY, eng.name);
+          directRow.href = fileUrl;
+          directFmt.className = 'fmt fmt-' + fmt;
+          directFmt.textContent = fmt;
+          directRow.hidden = false;
+          setStatus('ready', eng.name + ' resolved a direct file — grab it soon, these links expire. clicking download logs it to history.');
+          return;
+        } catch (e) {
+          notes.push(eng.name + ': ' + errNote(e));
+          continue;
+        }
+      } else {
+        var url = frameUrl(eng, id, fmt);
+        setStatus('busy', 'linking ' + eng.name + '…');
+        var alive = await probe(originOf(url));
+        if (alive) {
+          store.set(ENGINE_KEY, eng.name);
+          engineFrame.hidden = false;
+          engineFrame.src = url;
+          openTab.href = url;
+          openTab.hidden = false;
+          setStatus('ready', eng.name + ' served its widget — press the button inside the frame to download. if the frame shows an error page, hit “next engine”. (cross-origin frames can’t be auto-verified.)');
+          if (logOnServe) addHistory(id, fmt);
+          return;
+        }
+        notes.push(eng.name + ': unreachable');
       }
     }
 
     engineFrame.src = 'about:blank';
-    setStatus('error', 'every gateway is unreachable right now — the converter services look down. hit "try the next one" in a moment, or come back later.');
+    setStatus('error', 'every engine failed — ' + notes.join(' · ') + '. these are third-party services; retry in a minute (http 429 = rate-limited) or add a fresh one to the ENGINES list.');
   }
 
-  async function processConversion(format) {
+  async function processConversion(fmt) {
     if (busy) return;
-    lastFormat = format;
+    lastFormat = fmt;
 
     var id = getYouTubeId(input.value);
     outputZone.hidden = false;
-    directLink.hidden = true;
 
     if (!id) {
+      directRow.hidden = true;
       engineFrame.hidden = true;
       engineFrame.src = 'about:blank';
+      openTab.hidden = true;
       cycleBtn.hidden = true;
-      setStatus('error', 'that is not a youtube link I can read — paste a full watch?v=, shorts, youtu.be or music.youtube url (a bare 11-character id also works).');
+      setStatus('error', 'that doesn’t read as a youtube link — paste a full watch?v=, shorts, youtu.be or music.youtube url (a bare 11-character id works too).');
       return;
     }
 
+    updatePreview(id);
     setBusy(true);
-    await runExtraction(id, format, orderedProviders(format), 0, true);
+    await runResolve(id, fmt, null, true);
     setBusy(false);
   }
 
@@ -786,12 +942,16 @@
     if (e.key === 'Enter') { e.preventDefault(); processConversion(lastFormat); }
   });
 
+  /* direct-link engines: log history on the ACTUAL download click */
+  directRow.addEventListener('click', function () {
+    if (cur.id && cur.fmt) addHistory(cur.id, cur.fmt);
+  });
+
   cycleBtn.addEventListener('click', function () {
-    if (busy || !currentId || !currentList.length) return;
-    var next = currentIdx + 1;
-    if (next >= currentList.length) next = 0;
+    if (busy || !cur.id || !cur.list.length || cur.pos < 0) return;
+    var skip = cur.list[cur.pos].name;
     setBusy(true);
-    runExtraction(currentId, currentFormat, currentList, next, false).then(function () { setBusy(false); });
+    runResolve(cur.id, cur.fmt, skip, false).then(function () { setBusy(false); });
   });
 
   /* ---------- local download history ---------- */
@@ -834,6 +994,17 @@
     return new Date(ts).toLocaleDateString();
   }
 
+  function playPreview(entry) {
+    input.value = 'https://www.youtube.com/watch?v=' + entry.id;
+    updatePreview(entry.id);
+    applyFolderState('extractor', true);
+    saveFolderState('extractor', true);
+    fetchTitle(entry.id);
+    try {
+      previewWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (e) { previewWrap.scrollIntoView(); }
+  }
+
   function buildMiniCard(entry) {
     var card = document.createElement('div');
     card.className = 'mini';
@@ -857,13 +1028,28 @@
 
     var meta = document.createElement('div');
     meta.className = 'mini-meta';
+
     var fmt = document.createElement('span');
     fmt.className = 'fmt fmt-' + entry.format;
     fmt.textContent = entry.format;
+
     var when = document.createElement('span');
     when.textContent = relTime(entry.ts);
+
+    var play = document.createElement('button');
+    play.className = 'mini-play';
+    play.type = 'button';
+    play.setAttribute('aria-label', 'preview this video');
+    play.title = 'preview';
+    play.textContent = '▶';
+    play.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      playPreview(entry);
+    });
+
     meta.appendChild(fmt);
     meta.appendChild(when);
+    meta.appendChild(play);
 
     body.appendChild(title);
     body.appendChild(meta);
