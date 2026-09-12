@@ -233,6 +233,97 @@
     color: var(--text);
   }
 
+  .saved-section {
+    margin-top: 24px;
+  }
+
+  .saved-heading {
+    margin-bottom: 12px;
+  }
+
+  .saved-heading h2 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text);
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+  }
+
+  .saved-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .mini-card {
+    flex: 1 1 calc(50% - 7px);
+    min-width: 220px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--title);
+    box-shadow: var(--shadow);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mini-card .mini-title {
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: var(--text);
+  }
+
+  .mini-card .mini-preview {
+    font-size: 0.75rem;
+    color: var(--text);
+    opacity: 0.8;
+    line-height: 1.45;
+  }
+
+  .mini-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .mini-btn {
+    font-size: 0.7rem;
+    padding: 6px 9px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.15);
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+  }
+
+  .mini-btn:hover { background: rgba(0, 0, 0, 0.28); }
+  .mini-btn.danger:hover { background: #b02a2a; }
+
+  .add-card {
+    flex: 1 1 calc(50% - 7px);
+    min-width: 220px;
+    border: 2px dashed var(--line);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 90px;
+    cursor: pointer;
+    font-size: 1.8rem;
+    color: var(--text);
+    opacity: 0.65;
+    background: transparent;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    transition: opacity 0.15s ease, background 0.15s ease;
+  }
+
+  .add-card:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.08);
+  }
+
   @media (max-width: 480px) {
     body { padding: 48px 16px 40px; }
     .search-row { flex-direction: column; }
@@ -263,6 +354,13 @@
 
       <div id="output">Your transcript will appear here...</div>
     </div>
+  </section>
+
+  <section class="saved-section">
+    <div class="saved-heading">
+      <h2>Saved Transcripts</h2>
+    </div>
+    <div class="saved-grid" id="savedGrid"></div>
   </section>
 </main>
 
@@ -336,6 +434,108 @@
       outputDiv.innerText = "Error: " + error.message;
     }
   }
+
+  // ---------- saved transcripts ----------
+  const TRANSCRIPTS_KEY = 'savedTranscripts';
+  const SCRIPTS_KEY = 'savedScripts';
+
+  function loadTranscripts() {
+    try { return JSON.parse(localStorage.getItem(TRANSCRIPTS_KEY) || '[]'); } catch (e) { return []; }
+  }
+
+  function persistTranscripts(list) {
+    try { localStorage.setItem(TRANSCRIPTS_KEY, JSON.stringify(list)); } catch (e) {}
+  }
+
+  function mkMiniBtn(label, handler, danger) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'mini-btn' + (danger ? ' danger' : '');
+    b.textContent = label;
+    b.onclick = handler;
+    return b;
+  }
+
+  function renderSavedTranscripts() {
+    const grid = document.getElementById('savedGrid');
+    grid.innerHTML = '';
+
+    const addCard = document.createElement('button');
+    addCard.type = 'button';
+    addCard.className = 'add-card';
+    addCard.setAttribute('aria-label', 'Save current transcript');
+    addCard.textContent = '+';
+    addCard.onclick = saveCurrentTranscript;
+    grid.appendChild(addCard);
+
+    loadTranscripts().slice().reverse().forEach(function (item) {
+      const card = document.createElement('div');
+      card.className = 'mini-card';
+
+      const title = document.createElement('div');
+      title.className = 'mini-title';
+      title.textContent = item.title;
+
+      const preview = document.createElement('div');
+      preview.className = 'mini-preview';
+      preview.textContent = item.text.length > 140 ? item.text.slice(0, 140) + '…' : item.text;
+
+      const actions = document.createElement('div');
+      actions.className = 'mini-actions';
+      actions.appendChild(mkMiniBtn('Load', function () {
+        document.getElementById('output').innerText = item.text;
+      }));
+      actions.appendChild(mkMiniBtn('→ Scripts', function () { importToScripts(item); }));
+      actions.appendChild(mkMiniBtn('→ Jebai', function () { importToJebai(item); }));
+      actions.appendChild(mkMiniBtn('Delete', function () { deleteTranscript(item.id); }, true));
+
+      card.appendChild(title);
+      card.appendChild(preview);
+      card.appendChild(actions);
+      grid.appendChild(card);
+    });
+  }
+
+  function saveCurrentTranscript() {
+    const outputDiv = document.getElementById('output');
+    const text = outputDiv.innerText.trim();
+    if (!text || text === 'Your transcript will appear here...' || text.startsWith('Error:') || text.startsWith('Connecting to')) {
+      alert('Fetch a transcript first before saving it.');
+      return;
+    }
+    const fallback = 'Transcript ' + new Date().toLocaleString();
+    const title = prompt('Name this saved transcript:', document.getElementById('videoUrl').value.trim() || fallback) || fallback;
+    const list = loadTranscripts();
+    list.push({ id: Date.now().toString(36), title: title, text: text, date: new Date().toISOString() });
+    persistTranscripts(list);
+    renderSavedTranscripts();
+  }
+
+  function deleteTranscript(id) {
+    if (!confirm('Delete this saved transcript?')) return;
+    persistTranscripts(loadTranscripts().filter(function (i) { return i.id !== id; }));
+    renderSavedTranscripts();
+  }
+
+  function importToScripts(item) {
+    try {
+      const scripts = JSON.parse(localStorage.getItem(SCRIPTS_KEY) || '[]');
+      scripts.push({ id: Date.now().toString(36), title: item.title, content: item.text, date: new Date().toISOString(), source: 'transcript' });
+      localStorage.setItem(SCRIPTS_KEY, JSON.stringify(scripts));
+    } catch (e) {}
+    if (confirm('Imported to Scripts! Open the Scripts page now?')) {
+      window.location.href = '../inventory/scripts.html';
+    }
+  }
+
+  function importToJebai(item) {
+    try {
+      localStorage.setItem('jebai_import', JSON.stringify({ type: 'script', title: item.title, text: item.text, source: 'transcript' }));
+    } catch (e) {}
+    window.location.href = 'ai.html';
+  }
+
+  renderSavedTranscripts();
 </script>
 
 </body>
