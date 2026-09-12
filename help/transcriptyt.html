@@ -1,218 +1,342 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="normal">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instant YouTube Transcript Website</title>
-    <style>
-        /* Your Custom Branding Palette Integration */
-        :root {
-            --bg-main: #FF960C;         /* Bright background orange */
-            --text-title: #FF7100;      /* Darker heading orange */
-            --text-light: #F7F7F7;      /* Clean subtitle / text white */
-            --outline-dark: #2E1A00;    /* Deep contrast dark brown */
-            --card-bg: #3d2402;         /* Deep container dark background */
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Transcript Tool</title>
+<script>
+  (function () {
+    try {
+      var savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    } catch (e) {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Minecraft Bold';
+    src: url('../webfiles/MinecraftBold-nMK1.otf') format('opentype');
+    font-display: swap;
+  }
 
-        body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            max-width: 650px; 
-            margin: 0 auto; 
-            padding: 40px 20px; 
-            color: var(--text-light); 
-            background-color: var(--bg-main);
-            transition: background-color 0.3s, color 0.3s;
-        }
+  @font-face {
+    font-family: 'Minecraft';
+    src: url('../webfiles/MinecraftRegular-Bmg3.otf') format('opentype');
+    font-display: swap;
+  }
 
-        .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
+  :root {
+    --bg: #FF960C;
+    --title: #FF7100;
+    --text: #F7F7F7;
+    --line: #2E1A00;
+    --card-bg: #3d2402;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18);
+    --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
+  }
 
-        h2 {
-            color: var(--text-title);
-            font-size: 2.2rem;
-            margin: 0;
-            text-shadow: 2px 2px 0px var(--outline-dark);
-        }
+  html[data-theme="dark"] {
+    --bg: #121212;
+    --title: #1e1e1e;
+    --text: #f0f0f0;
+    --line: #000000;
+    --card-bg: #1a1a1a;
+    --shadow: 0 2px 10px rgba(255, 255, 255, 0.18);
+    --shadow-hover: 0 10px 28px rgba(255, 255, 255, 0.4);
+  }
 
-        .search-container {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
+  html[data-theme="light"] {
+    --bg: #f5f5f5;
+    --title: #ffffff;
+    --text: #222222;
+    --line: #cfcfcf;
+    --card-bg: #ffffff;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18);
+    --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
+  }
 
-        input { 
-            flex: 1;
-            padding: 12px; 
-            font-size: 16px; 
-            border: 2px solid var(--outline-dark); 
-            border-radius: 6px; 
-            box-sizing: border-box;
-            background-color: var(--text-light);
-            color: #222;
-        }
+  * { box-sizing: border-box; }
 
-        .fetch-btn { 
-            padding: 12px 20px; 
-            font-size: 16px; 
-            background-color: var(--text-title); 
-            color: var(--text-light); 
-            border: 2px solid var(--outline-dark); 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            text-shadow: 1px 1px 0px var(--outline-dark);
-            box-shadow: 3px 3px 0px var(--outline-dark);
-        }
-        .fetch-btn:hover { background-color: #e66600; }
-        .fetch-btn:active { transform: translate(1px, 1px); box-shadow: 2px 2px 0px var(--outline-dark); }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
 
-        .action-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 25px;
-            margin-bottom: 5px;
-        }
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) var(--bg);
+  }
 
-        .copy-btn {
-            padding: 8px 14px;
-            font-size: 14px;
-            background-color: transparent;
-            color: var(--text-light);
-            border: 2px solid var(--outline-dark);
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            background: rgba(0,0,0,0.15);
-            box-shadow: 2px 2px 0px var(--outline-dark);
-        }
-        .copy-btn:hover { background: rgba(0,0,0,0.25); }
+  ::-webkit-scrollbar { width: 12px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 8px;
+    border: 3px solid var(--bg);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--title); }
 
-        #output { 
-            white-space: pre-wrap; 
-            background: var(--card-bg); 
-            padding: 20px; 
-            border-radius: 8px; 
-            border: 3px solid var(--outline-dark); 
-            min-height: 120px; 
-            line-height: 1.6; 
-            box-shadow: 5px 5px 0px var(--outline-dark); 
-            font-size: 15px;
-            color: var(--text-light);
-        }
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 72px 24px 48px;
+  }
 
-        .nav-back {
-            display: inline-block;
-            margin-bottom: 15px;
-            text-decoration: none;
-            color: var(--text-light);
-            font-weight: bold;
-            border: 2px solid var(--outline-dark);
-            padding: 5px 12px;
-            border-radius: 6px;
-            background: rgba(0,0,0,0.1);
-        }
-    </style>
+  main {
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .nav-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 28px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.85rem;
+    border: 1px solid var(--line);
+    padding: 9px 16px;
+    border-radius: 5px;
+    background: var(--title);
+    transition: background 0.15s ease, padding-left 0.15s ease;
+  }
+
+  .nav-back:hover {
+    background: #E06800;
+    padding-left: 20px;
+  }
+
+  .folder {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .folder:hover,
+  .folder:focus-within {
+    box-shadow: var(--shadow-hover);
+  }
+
+  .folder-head {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--line);
+    background: var(--title);
+    border-radius: 5px 5px 0 0;
+  }
+
+  .folder-head h1 {
+    font-family: 'Minecraft Bold', 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--text);
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .folder-head p {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.85rem;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+
+  .folder-body {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    font-family: 'IBM Plex Mono', monospace;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--text);
+    color: #222;
+  }
+
+  .btn {
+    padding: 12px 18px;
+    font-size: 0.85rem;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    background: var(--title);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+
+  .btn:hover { background: #E06800; }
+  .btn:active { transform: translate(1px, 1px); }
+
+  .action-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .action-row h2 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text);
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+  }
+
+  .copy-btn {
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    background: rgba(0, 0, 0, 0.15);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .copy-btn:hover { background: rgba(0, 0, 0, 0.25); }
+
+  #output {
+    white-space: pre-wrap;
+    background: var(--card-bg);
+    padding: 18px;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+    min-height: 140px;
+    line-height: 1.6;
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 48px 16px 40px; }
+    .search-row { flex-direction: column; }
+  }
+</style>
 </head>
 <body>
 
-    <!-- Navigates accurately back up to your index index.html page -->
-    <a href="../index.html" class="nav-back">← Back to Station Index</a>
+<main>
+  <a href="../index.html" class="nav-back">← Back to Directory</a>
 
-    <div class="header-row">
-        <h2>My YouTube Transcript Tool</h2>
+  <section class="folder">
+    <div class="folder-head">
+      <h1>YouTube Transcript Tool</h1>
+      <p>Extract video text tracks cleanly using your free Supadata account.</p>
     </div>
-    <p style="margin-top: 0; color: var(--text-light); opacity: 0.9;">Extract video text tracks cleanly using your free Supadata account.</p>
-    
-    <div class="search-container">
-        <input type="text" id="videoUrl" placeholder="Paste YouTube link here (e.g., https://youtube.com...)">
-        <button class="fetch-btn" onclick="getTranscript()">Fetch Text</button>
-    </div>
-    
-    <div class="action-row">
-        <h3 style="margin: 0; color: var(--text-light);">Transcript Output:</h3>
+
+    <div class="folder-body">
+      <div class="search-row">
+        <input type="text" id="videoUrl" placeholder="Paste YouTube link here (e.g., https://youtu.be/...)">
+        <button class="btn" onclick="getTranscript()">Fetch Text</button>
+      </div>
+
+      <div class="action-row">
+        <h2>Transcript Output</h2>
         <button class="copy-btn" onclick="copyToClipboard()">📋 Copy Text</button>
+      </div>
+
+      <div id="output">Your transcript will appear here...</div>
     </div>
-    
-    <div id="output">Your transcript will appear here...</div>
+  </section>
+</main>
 
-    <script>
-        // Your integrated Supadata API Key
-        const MY_SUPADATA_KEY = "sd_131232fbc0989acf458c7606ff1a9ee6";
+<script>
+  // Your integrated Supadata API Key
+  const MY_SUPADATA_KEY = "sd_131232fbc0989acf458c7606ff1a9ee6";
 
-        function copyToClipboard() {
-            const outputText = document.getElementById('output').innerText;
-            if (outputText === "Your transcript will appear here..." || outputText.trim() === "" || outputText.startsWith("Error:")) {
-                alert("There is no valid transcript text to copy yet!");
-                return;
-            }
-            
-            navigator.clipboard.writeText(outputText).then(() => {
-                alert("Transcript copied to clipboard successfully!");
-            }).catch(err => {
-                alert("Oops, unable to copy text automatically.");
-            });
+  function copyToClipboard() {
+    const outputText = document.getElementById('output').innerText;
+    if (outputText === "Your transcript will appear here..." || outputText.trim() === "" || outputText.startsWith("Error:")) {
+      alert("There is no valid transcript text to copy yet!");
+      return;
+    }
+    navigator.clipboard.writeText(outputText).then(() => {
+      alert("Transcript copied to clipboard successfully!");
+    }).catch(() => {
+      alert("Oops, unable to copy text automatically.");
+    });
+  }
+
+  function cleanSoundTags(text) {
+    if (!text) return "";
+    // Strips bracketed/parenthesized sound cues like [music] or (laughter)
+    let clean = text.replace(/\[.*?\]|\(.*?\)/gi, "");
+    return clean.replace(/\s+/g, " ").trim();
+  }
+
+  async function getTranscript() {
+    const urlInput = document.getElementById('videoUrl').value.trim();
+    const outputDiv = document.getElementById('output');
+
+    if (!urlInput) {
+      alert('Please paste a YouTube URL first.');
+      return;
+    }
+
+    outputDiv.innerText = "Connecting to Supadata and processing captions...";
+
+    // Correct endpoint: https://api.supadata.ai/v1/transcript?url=<encoded url>&text=true
+    const targetUrl = "https://api.supadata.ai/v1/transcript?url=" + encodeURIComponent(urlInput) + "&text=true";
+
+    try {
+      const response = await fetch(targetUrl, {
+        method: 'GET',
+        headers: {
+          'x-api-key': MY_SUPADATA_KEY
         }
+      });
 
-        function cleanSoundTags(text) {
-            if (!text) return "";
-            // Matches elements nested inside brackets like [music] or (laughter)
-            let clean = text.replace(/\[.*?\]|\(.*?\)/gi, "");
-            return clean.replace(/\s+/g, " ").trim();
-        }
+      if (!response.ok) {
+        const errBody = await response.text().catch(() => "");
+        throw new Error("Unable to grab transcript (status " + response.status + "). Verify the URL, your API key, or your free credit limit. " + errBody);
+      }
 
-        async function getTranscript() {
-            const urlInput = document.getElementById('videoUrl').value.trim();
-            const outputDiv = document.getElementById('output');
-            
-            if (!urlInput) {
-                alert('Please paste a YouTube URL first.');
-                return;
-            }
-            
-            outputDiv.innerText = "Connecting to Supadata engines and processing captions...";
+      const data = await response.json();
+      let rawTranscript = "";
 
-            // CRITICAL SYSTEM FIX: Correct API route parameters mapped cleanly
-            const targetUrl = 'https://supadata.ai' + encodeURIComponent(urlInput) + '&text=true';
+      if (data.content && typeof data.content === 'string') {
+        rawTranscript = data.content;
+      } else if (Array.isArray(data.content)) {
+        rawTranscript = data.content.map(function (item) { return item.text; }).join(' ');
+      } else if (data.transcript) {
+        rawTranscript = data.transcript;
+      } else {
+        outputDiv.innerText = "No readable text track found inside this video's payload.";
+        return;
+      }
 
-            try {
-                const response = await fetch(targetUrl, {
-                    method: 'GET',
-                    headers: {
-                        'x-api-key': MY_SUPADATA_KEY
-                    }
-                });
+      outputDiv.innerText = cleanSoundTags(rawTranscript);
+    } catch (error) {
+      outputDiv.innerText = "Error: " + error.message;
+    }
+  }
+</script>
 
-                if (!response.ok) {
-                    throw new Error("Unable to grab transcript. Please verify the URL link or check your free credit limits.");
-                }
-
-                const data = await response.json();
-                let rawTranscript = "";
-                
-                // Parse out payloads safely based on structural response conditions
-                if (data.content && typeof data.content === 'string') {
-                    rawTranscript = data.content;
-                } else if (Array.isArray(data.content)) {
-                    rawTranscript = data.content.map(function(item) { return item.text; }).join(' ');
-                } else if (data.transcript) {
-                    rawTranscript = data.transcript;
-                } else {
-                    outputDiv.innerText = "No readable text track found inside this video's payload.";
-                    return;
-                }
-
-                // Filter out the music and sound elements before writing to view matrix
-                outputDiv.innerText = cleanSoundTags(rawTranscript);
-
-            } catch (error) {
-                outputDiv.innerText = "Error: " + error.message;
-            }
-        }
-    </script>
 </body>
 </html>
