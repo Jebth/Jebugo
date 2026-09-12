@@ -552,11 +552,17 @@
   }
 
   async function callJebai(messages, systemPrompt) {
+    // FIX: Determine the correct referer (handles local file:// protocol returning "null")
+    const referer = window.location.origin === "null" ? "http://localhost" : window.location.origin;
+
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + OPENROUTER_KEY,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        // OpenRouter requires these headers to return actual text content for free/browser requests
+        'HTTP-Referer': referer, 
+        'X-Title': 'Jeb AI'
       },
       body: JSON.stringify({
         model: MODEL,
@@ -572,7 +578,10 @@
 
     const data = await response.json();
     const reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-    if (!reply) throw new Error('No response content returned.');
+    
+    if (!reply) {
+      throw new Error('No response content returned. (OpenRouter may have stripped the text due to missing headers or a model timeout).');
+    }
     return reply.trim();
   }
 
