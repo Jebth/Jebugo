@@ -8,9 +8,7 @@
   (function () {
     try {
       var savedTheme = localStorage.getItem('theme');
-      if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-      }
+      if (savedTheme) { document.documentElement.setAttribute('data-theme', savedTheme); }
     } catch (e) {}
   })();
 </script>
@@ -57,65 +55,59 @@
   .btn:hover { background: rgba(0,0,0,0.28); }
   .btn.primary { background: var(--title); }
   .btn.primary:hover { background: #E06800; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
 
   .tabs {
     display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 4px;
+    margin-bottom: 16px;
   }
   .tab-btn {
     flex: 1;
-    padding: 10px 12px solid var(--line);
-    border-radius: 5px 5px 0 0;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
     background: rgba(0,0,0,0.08);
     color: var(--text);
     cursor: pointer;
-    font-family: 'Minecraft', monospace;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    font-weight: bold;
     font-size: 0.85rem;
-    border-bottom: 3px solid transparent;
- 0.15s ease;
+    transition: background 0.15s ease;
   }
   .tab-btn.active {
     background: var(--title);
-    border-bottom-color: var(--line: var(--line);
+    border-color: var(--line);
   }
-  .tab-btn:hover:not: rgba(0,0,0,0.15); }
+  .tab-btn:hover:not(.active) {
+    background: rgba(0,0,0,0.15);
+  }
 
-  .archive-card-bg);
-    border: var(--card-bg);
+  .archive-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .archive-item {
+    background: var(--card-bg);
     border: 1px solid var(--line);
     border-radius: 5px;
     padding: 14px;
-    display: flex;
   }
   .archive-item .h-meta { font-size: 0.68rem; opacity: 0.7; margin-bottom: 6px; }
-  .archive-item .preview { white-space: pre-wrap;
-    font-size: 0.8rem; line-height: 1.5;
-    margin-bottom: 8px;
-    max-height: 240;
-    display:  168px;
-  }
+  .archive-item .h-title { font-weight: bold; font-size: 0.95rem; margin-bottom: 6px; }
+  .archive-item .h-text { white-space: pre-wrap; font-size: 0.8rem; line-height: 1.5; margin-bottom: 8px; max-height: 120px; overflow: hidden; position: relative; }
+  .archive-item .card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
-  .mini-btn { font-size: 0.72rem; padding: 6px 10px;
-    border: var(--line);
-    background: rgba(0,0,0,0.15);
-    color: var(--text);
-    cursor: pointer;
-    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
+  .mini-btn { font-size: 0.72rem; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--line); background: rgba(0,0,0,0.15); color: var(--text); cursor: pointer; font-family: 'Minecraft', 'IBM Plex Mono', monospace; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
   .mini-btn:hover { background: rgba(0,0,0,0.28); }
   .mini-btn.danger { border-color: #ffb4b4; color: #ffb4b4; }
   .mini-btn.danger:hover { background: rgba(255,100,100,0.2); }
 
-  .empty-state { text-align: center; padding: 30px 0.7; font-size: 0.7;
-  }
+  .empty-state { text-align: center; padding: 30px 20px; opacity: 0.7; font-size: 0.9rem; }
 
-  @media (max-width:
-    body { padding: 48px 16px 40px; }
-  }
+  @media (max-width: 480px) { body { padding: 48px 16px 40px; } }
 </style>
 </head>
 <body>
@@ -126,17 +118,15 @@
   <section class="folder">
     <div class="folder-head">
       <h1>Archive</h1>
-      <p>Browse your archived ideas and scripts. You can view, restore, or delete old content that
+      <p>Browse your saved ideas and scripts. Preview, view the full content, or delete items you no longer need.</p>
+    </div>
     <div class="folder-body">
       <div class="tabs">
         <button class="tab-btn active" id="tabIdeas" onclick="switchTab('ideas')">💡 Archived Ideas</button>
-        <button class="tab-btn" id="tabScripts" onclick="switchTab('scripts')">📜 Scripts</button>
+        <button class="tab-btn" id="tabScripts" onclick="switchTab('scripts')">📝 Archived Scripts</button>
       </div>
-      <div id="tabContent">
-        <div id="itemsList" class="archive-list"></div>
-        <div class="empty-state" id="empty">No archived items yet.</div>
-      </div>
-    </div>
+      <div class="archive-list" id="archiveList"></div>
+      <div class="empty-state" id="archiveEmpty">No archived items yet.</div>
     </div>
   </section>
 </main>
@@ -144,28 +134,21 @@
 <script>
   const IDEAS_KEY = 'savedIdeas';
   const SCRIPTS_KEY = 'savedScripts';
-  let currentTab = 'ideas'; let ideas = [];
+  let currentTab = 'ideas';
+  let ideas = [];
   let scripts = [];
 
-  function load() {
-    try {
-      ideas = JSON.parse(localStorage.getItem(IDEAS_KEY) || '[]');
-    } catch (e) { ideas = []; }
-    try {
-      scripts = JSON.parse(localStorage.getItem(SCRIPTS_KEY) || '[]');
-    } catch (e) { scripts = []; }
+  function loadData() {
+    try { ideas = JSON.parse(localStorage.getItem(IDEAS_KEY) || '[]'); } catch (e) { ideas = []; }
+    try { scripts = JSON.parse(localStorage.getItem(SCRIPTS_KEY) || '[]'); } catch (e) { scripts = []; }
   }
 
   function saveIdeaData() {
-    try {
-      localStorage.setItem(IDEAS_KEY, JSON.stringify(ideas));
-    } catch (e) {}
+    try { localStorage.setItem(IDEAS_KEY, JSON.stringify(ideas)); } catch (e) {}
   }
 
   function saveScriptData() {
-    try {
-      localStorage.setItem(SCRIPTS_KEY, JSON.stringify(scripts));
-    } catch (e) {}
+    try { localStorage.setItem(SCRIPTS_KEY, JSON.stringify(scripts)); } catch (e) {}
   }
 
   function escapeHtml(text) {
@@ -186,7 +169,6 @@
     listEl.innerHTML = '';
 
     const items = currentTab === 'ideas' ? ideas : scripts;
-    const titleField = currentTab === 'ideas' ? 'text' : 'title';
 
     if (!items.length) {
       emptyEl.style.display = 'block';
@@ -199,12 +181,13 @@
       const el = document.createElement('div');
       el.className = 'archive-item';
       const preview = item.text || item.content || '';
+      const title = item.title || (currentTab === 'ideas' ? 'Untitled Idea' : 'Untitled Script');
       el.innerHTML = `
         <div class="h-meta">${escapeHtml(new Date(item.date).toLocaleString())}</div>
-        <div class="h-title">${escapeHtml(item.title || 'Untitled')}</div>
+        <div class="h-title">${escapeHtml(title)}</div>
         <div class="h-text">${escapeHtml(preview.slice(0, 200))}${preview.length > 200 ? '...' : ''}</div>
         <div class="card-actions">
-          <button class="mini-btn" onclick="viewFull('${item.id}')">👁 View</button>
+          <button class="mini-btn" onclick="viewFull('${item.id}')">👁 View Full</button>
           <button class="mini-btn danger" onclick="deleteItem('${item.id}')">✕ Delete</button>
         </div>
       `;
@@ -232,7 +215,6 @@
     render();
   }
 
-  // init
   loadData();
   render();
 </script>
