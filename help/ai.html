@@ -1,1 +1,643 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="normal">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeb AI</title>
+<script>
+  (function () {
+    try {
+      var savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    } catch (e) {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Minecraft Bold';
+    src: url('../webfiles/MinecraftBold-nMK1.otf') format('opentype');
+    font-display: swap;
+  }
 
+  @font-face {
+    font-family: 'Minecraft';
+    src: url('../webfiles/MinecraftRegular-Bmg3.otf') format('opentype');
+    font-display: swap;
+  }
+
+  :root {
+    --bg: #FF960C;
+    --title: #FF7100;
+    --text: #F7F7F7;
+    --line: #2E1A00;
+    --card-bg: #3d2402;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18);
+    --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
+  }
+
+  html[data-theme="dark"] {
+    --bg: #121212;
+    --title: #1e1e1e;
+    --text: #f0f0f0;
+    --line: #000000;
+    --card-bg: #1a1a1a;
+    --shadow: 0 2px 10px rgba(255, 255, 255, 0.18);
+    --shadow-hover: 0 10px 28px rgba(255, 255, 255, 0.4);
+  }
+
+  html[data-theme="light"] {
+    --bg: #f5f5f5;
+    --title: #ffffff;
+    --text: #222222;
+    --line: #cfcfcf;
+    --card-bg: #ffffff;
+    --shadow: 0 2px 10px rgba(46, 26, 0, 0.18);
+    --shadow-hover: 0 10px 28px rgba(46, 26, 0, 0.4);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) var(--bg);
+  }
+
+  ::-webkit-scrollbar { width: 12px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 8px;
+    border: 3px solid var(--bg);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--title); }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 72px 24px 48px;
+  }
+
+  main {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .nav-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.85rem;
+    border: 1px solid var(--line);
+    padding: 9px 16px;
+    border-radius: 5px;
+    background: var(--title);
+    transition: background 0.15s ease, padding-left 0.15s ease;
+    align-self: flex-start;
+  }
+
+  .nav-back:hover {
+    background: #E06800;
+    padding-left: 20px;
+  }
+
+  .folder {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .folder:hover,
+  .folder:focus-within {
+    box-shadow: var(--shadow-hover);
+  }
+
+  .folder-head {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--line);
+    background: var(--title);
+    border-radius: 5px 5px 0 0;
+  }
+
+  .folder-head h1 {
+    font-family: 'Minecraft Bold', 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--text);
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .folder-head p {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.85rem;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+
+  .folder-body {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  h2.section-title {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text);
+    opacity: 0.9;
+  }
+
+  textarea, input[type="text"] {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 0.85rem;
+    font-family: 'IBM Plex Mono', monospace;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--text);
+    color: #222;
+    resize: vertical;
+  }
+
+  .btn {
+    padding: 11px 18px;
+    font-size: 0.82rem;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+    background: rgba(0, 0, 0, 0.15);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+
+  .btn:hover { background: rgba(0, 0, 0, 0.28); }
+  .btn.primary { background: var(--title); }
+  .btn.primary:hover { background: #E06800; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn:active:not(:disabled) { transform: translate(1px, 1px); }
+
+  .btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .source-box {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .source-box .s-label {
+    font-size: 0.72rem;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .source-box .s-title {
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+
+  .source-box .s-text {
+    white-space: pre-wrap;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  .idea-output {
+    display: none;
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 16px;
+    white-space: pre-wrap;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .idea-output.show { display: block; }
+
+  .status-line {
+    font-size: 0.8rem;
+    opacity: 0.85;
+    min-height: 1.2em;
+  }
+
+  .status-line.error { color: #ffb4b4; }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .history-item {
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--title);
+    padding: 12px 14px;
+  }
+
+  .history-item .h-meta {
+    font-size: 0.68rem;
+    opacity: 0.7;
+    margin-bottom: 6px;
+  }
+
+  .history-item .h-text {
+    white-space: pre-wrap;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+
+  .mini-btn {
+    font-size: 0.72rem;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.15);
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'Minecraft', 'IBM Plex Mono', monospace;
+  }
+
+  .mini-btn:hover { background: rgba(0, 0, 0, 0.28); }
+
+  .empty-state {
+    font-size: 0.85rem;
+    opacity: 0.7;
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 48px 16px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <a href="../index.html" class="nav-back">← Back to Directory</a>
+
+  <section class="folder">
+    <div class="folder-head">
+      <h1>Jeb AI</h1>
+      <p>Feed it a script or transcript and it'll idea-bend a fresh self-improvement / discipline video concept out of it.</p>
+    </div>
+
+    <div class="folder-body">
+      <!-- source: shown when a script/idea has been imported -->
+      <div class="source-box" id="loadedSourceBox" style="display:none;">
+        <div class="s-label" id="sourceLabel">Loaded source</div>
+        <div class="s-title" id="sourceTitle"></div>
+        <div class="s-text" id="sourceText"></div>
+        <div class="btn-row">
+          <button class="btn" onclick="clearSource()">Clear / Paste something else</button>
+        </div>
+      </div>
+
+      <!-- manual paste, shown when nothing has been imported -->
+      <div id="manualSourceBox">
+        <h2 class="section-title">Paste a script or transcript to work from</h2>
+        <textarea id="manualSourceInput" rows="6" placeholder="Paste a YouTube script or transcript here..."></textarea>
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="btn primary" onclick="useManualSource()">Use as Source</button>
+        </div>
+      </div>
+
+      <div class="btn-row" id="generateRow" style="display:none;">
+        <button class="btn primary" id="generateBtn" onclick="generateIdea()">🔮 Generate Similar Idea</button>
+      </div>
+
+      <div class="status-line" id="statusLine"></div>
+
+      <div class="idea-output" id="ideaOutput"></div>
+
+      <div class="btn-row" id="followupRow" style="display:none;">
+        <button class="btn primary" onclick="importCurrentIdea()">💾 Import to Ideas</button>
+        <button class="btn" onclick="refineIdea()">♻️ Refine From Original</button>
+        <button class="btn" onclick="moreIdeas()">✨ Generate Another Idea</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="folder">
+    <div class="folder-head">
+      <h1 style="font-size:1.1rem;">Session History</h1>
+      <p>Ideas generated in this browser, newest first.</p>
+    </div>
+    <div class="folder-body">
+      <div class="history-list" id="historyList"></div>
+      <div class="empty-state" id="historyEmpty">Nothing generated yet.</div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // Your integrated OpenRouter API key
+  const OPENROUTER_KEY = "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";
+  const MODEL = "thinkingmachines/inkling-small:free";
+
+  const SYSTEM_PROMPT = "You are Jeb AI, a creative idea-bending assistant for a YouTube creator. " +
+    "You take an existing script or transcript and, keeping its underlying structure, hook style, pacing, " +
+    "and format, transform it into a brand-new original video concept for a self-improvement, discipline, " +
+    "and self-mastery channel. Never copy the source content's actual wording or topic directly — bend the " +
+    "pattern, not the content. Respond with a clear Title, a one-line Hook, and a short 3-5 bullet Outline.";
+
+  let currentSource = null; // { title, text }
+  let lastIdea = null;
+  let sessionIdeas = [];
+
+  const HISTORY_KEY = 'jebaiHistory';
+  const IDEAS_KEY = 'savedIdeas';
+
+  function setStatus(msg, isError) {
+    const el = document.getElementById('statusLine');
+    el.textContent = msg || '';
+    el.classList.toggle('error', !!isError);
+  }
+
+  function setLoading(isLoading) {
+    document.getElementById('generateBtn').disabled = isLoading;
+    document.querySelectorAll('#followupRow .btn').forEach(function (b) { b.disabled = isLoading; });
+    if (isLoading) setStatus('Thinking…');
+  }
+
+  function renderSourcePanel() {
+    const loadedBox = document.getElementById('loadedSourceBox');
+    const manualBox = document.getElementById('manualSourceBox');
+    const generateRow = document.getElementById('generateRow');
+
+    if (currentSource) {
+      loadedBox.style.display = 'flex';
+      manualBox.style.display = 'none';
+      generateRow.style.display = 'flex';
+      document.getElementById('sourceLabel').textContent = 'Loaded source (' + currentSource.kind + ')';
+      document.getElementById('sourceTitle').textContent = currentSource.title;
+      document.getElementById('sourceText').textContent = currentSource.text;
+    } else {
+      loadedBox.style.display = 'none';
+      manualBox.style.display = 'block';
+      generateRow.style.display = 'none';
+    }
+  }
+
+  function useManualSource() {
+    const text = document.getElementById('manualSourceInput').value.trim();
+    if (!text) {
+      alert('Paste a script or transcript first.');
+      return;
+    }
+    currentSource = { title: 'Pasted script', text: text, kind: 'manual' };
+    renderSourcePanel();
+  }
+
+  function clearSource() {
+    currentSource = null;
+    lastIdea = null;
+    document.getElementById('manualSourceInput').value = '';
+    document.getElementById('ideaOutput').classList.remove('show');
+    document.getElementById('followupRow').style.display = 'none';
+    setStatus('');
+    renderSourcePanel();
+  }
+
+  function buildInitialPrompt() {
+    return "Here is the source script/transcript:\n\n\"\"\"\n" + currentSource.text + "\n\"\"\"\n\n" +
+      "Generate one new, original self-improvement/discipline video idea inspired by this script's structure and pacing.";
+  }
+
+  function buildRefinePrompt() {
+    return "Original source script:\n\n\"\"\"\n" + currentSource.text + "\n\"\"\"\n\n" +
+      "Your previously generated idea was:\n\n\"\"\"\n" + lastIdea + "\n\"\"\"\n\n" +
+      "Learn from the original script again and produce an improved, more compelling version of a similar " +
+      "self-improvement/discipline video idea — sharpen the hook and outline.";
+  }
+
+  function buildMorePrompt() {
+    return "Source script/transcript:\n\n\"\"\"\n" + currentSource.text + "\n\"\"\"\n\n" +
+      "Generate a different, fresh self-improvement/discipline video idea inspired by this script, using a " +
+      "different angle than before. Ideas already generated this session (avoid repeating these):\n" +
+      sessionIdeas.join('\n---\n');
+  }
+
+  async function callJebai(userPrompt) {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + OPENROUTER_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userPrompt }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text().catch(function () { return ''; });
+      throw new Error('Request failed (status ' + response.status + '). ' + errBody);
+    }
+
+    const data = await response.json();
+    const reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    if (!reply) throw new Error('No response content returned.');
+    return reply.trim();
+  }
+
+  function handleNewIdea(idea) {
+    lastIdea = idea;
+    sessionIdeas.push(idea);
+    const out = document.getElementById('ideaOutput');
+    out.textContent = idea;
+    out.classList.add('show');
+    document.getElementById('followupRow').style.display = 'flex';
+    saveToHistory(idea);
+    setStatus('');
+  }
+
+  async function generateIdea() {
+    if (!currentSource) return;
+    setLoading(true);
+    try {
+      const idea = await callJebai(buildInitialPrompt());
+      handleNewIdea(idea);
+    } catch (e) {
+      setStatus('Error: ' + e.message, true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function refineIdea() {
+    if (!currentSource || !lastIdea) return;
+    setLoading(true);
+    try {
+      const idea = await callJebai(buildRefinePrompt());
+      handleNewIdea(idea);
+    } catch (e) {
+      setStatus('Error: ' + e.message, true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function moreIdeas() {
+    if (!currentSource) return;
+    setLoading(true);
+    try {
+      const idea = await callJebai(buildMorePrompt());
+      handleNewIdea(idea);
+    } catch (e) {
+      setStatus('Error: ' + e.message, true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function importCurrentIdea() {
+    if (!lastIdea) return;
+    importIdeaText(lastIdea);
+  }
+
+  function importIdeaText(text) {
+    try {
+      const ideas = JSON.parse(localStorage.getItem(IDEAS_KEY) || '[]');
+      ideas.push({ id: Date.now().toString(36), text: text, date: new Date().toISOString(), source: 'jebai' });
+      localStorage.setItem(IDEAS_KEY, JSON.stringify(ideas));
+    } catch (e) {}
+    if (confirm('Saved to Ideas! Open the Ideas page now?')) {
+      window.location.href = '../inventory/ideas.html';
+    }
+  }
+
+  function saveToHistory(idea) {
+    try {
+      const hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      hist.push({
+        id: Date.now().toString(36),
+        text: idea,
+        date: new Date().toISOString(),
+        sourceTitle: currentSource ? currentSource.title : ''
+      });
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+    } catch (e) {}
+    renderHistory();
+  }
+
+  function deleteHistoryItem(id) {
+    try {
+      const hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]').filter(function (h) { return h.id !== id; });
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+    } catch (e) {}
+    renderHistory();
+  }
+
+  function formatDate(iso) {
+    try { return new Date(iso).toLocaleString(); } catch (e) { return ''; }
+  }
+
+  function renderHistory() {
+    let hist = [];
+    try { hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (e) {}
+    hist = hist.slice().reverse();
+
+    const listEl = document.getElementById('historyList');
+    const emptyEl = document.getElementById('historyEmpty');
+    listEl.innerHTML = '';
+    emptyEl.style.display = hist.length ? 'none' : 'block';
+
+    hist.forEach(function (item) {
+      const wrap = document.createElement('div');
+      wrap.className = 'history-item';
+
+      const meta = document.createElement('div');
+      meta.className = 'h-meta';
+      meta.textContent = formatDate(item.date) + (item.sourceTitle ? ' · from "' + item.sourceTitle + '"' : '');
+
+      const text = document.createElement('div');
+      text.className = 'h-text';
+      text.textContent = item.text;
+
+      const actions = document.createElement('div');
+      actions.style.display = 'flex';
+      actions.style.gap = '8px';
+
+      const importBtn = document.createElement('button');
+      importBtn.className = 'mini-btn';
+      importBtn.type = 'button';
+      importBtn.textContent = '💾 Import to Ideas';
+      importBtn.onclick = function () { importIdeaText(item.text); };
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'mini-btn';
+      delBtn.type = 'button';
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = function () { deleteHistoryItem(item.id); };
+
+      actions.appendChild(importBtn);
+      actions.appendChild(delBtn);
+
+      wrap.appendChild(meta);
+      wrap.appendChild(text);
+      wrap.appendChild(actions);
+      listEl.appendChild(wrap);
+    });
+  }
+
+  // ---------- init: pick up an import from Transcriptyt / Scripts / Ideas ----------
+  (function init() {
+    try {
+      const raw = localStorage.getItem('jebai_import');
+      if (raw) {
+        const imp = JSON.parse(raw);
+        currentSource = { title: imp.title || 'Imported', text: imp.text, kind: imp.source || imp.type || 'import' };
+        localStorage.removeItem('jebai_import');
+      }
+    } catch (e) {}
+    renderSourcePanel();
+    renderHistory();
+  })();
+</script>
+
+</body>
+</html>
